@@ -1,11 +1,10 @@
 #!/usr/bin/env python2
 
-import muz
 from setuptools import setup
 
 setup(
     name='muz',
-    version=muz.VERSION,
+    version="0.01-prepreprealpha",
     description='A mania-style rhythm game',
     url='http://github.com/nexAkari/muz',
     author='Andrew "Akari" Alexeyew"',
