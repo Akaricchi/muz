@@ -30,7 +30,7 @@ _config = muz.config.get(__name__, {
         "driver": "default",
         "sound-effect-volume": 0.5,
         "music-volume": 0.5,
-        "auto-convert": True,
+        "auto-convert": False,
     }
 })
 
