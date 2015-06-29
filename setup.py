@@ -11,7 +11,7 @@ setup(
     author_email='akari@alienslab.net',
     license='WTFPL',
     packages=['muz'],
-    install_requires=['pygame>=1.9.1'],
+    #install_requires=['pygame>=1.9.1'],
     zip_safe=False,
     include_package_data=True
 )
