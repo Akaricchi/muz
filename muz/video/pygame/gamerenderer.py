@@ -11,7 +11,7 @@ from muz.util import mix, clamp
 
 config = muz.config.get(__name__, {
     "antialias-text"    : True,
-    "show-timing-hints"  : False,
+    "show-timing-hints" : False,
     "render-text"       : True,
 
     "fonts": {
