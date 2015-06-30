@@ -50,9 +50,10 @@ class Metadata(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         if not isinstance(value, unicode):
-            value = value.decode('utf-8')
-
-        self.store[key] = value
+            if not isinstance(value, str):
+                value = str(value)
+        
+        self.store[key] = value.decode('utf-8')
 
     def __delitem__(self, key):
         del self.store[key]
