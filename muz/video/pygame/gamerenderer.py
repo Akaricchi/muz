@@ -151,6 +151,7 @@ class GameRenderer(object):
             self.prepareDraw(screen)
 
         game = self.game
+        stats = game.stats
         colors = config["colors"]
         txtcolors = colors["text"]
 
@@ -235,9 +236,9 @@ class GameRenderer(object):
         ts = self.nameSurf.get_rect()
         screen.blit(self.nameSurf, ((bounds.width - ts.width) * 0.5, bounds.height - ts.height))
 
-        if game.score != self.drawnScore:
-            self.scoreSurf = self.renderText(str(int(game.score)), self.bigFont, txtcolors["score"], direct=True)
-            self.drawnScore = game.score
+        if stats.score != self.drawnScore:
+            self.scoreSurf = self.renderText(str(int(stats.score)), self.bigFont, txtcolors["score"], direct=True)
+            self.drawnScore = stats.score
 
         ts = self.scoreSurf.get_rect()
         screen.blit(self.scoreSurf, ((bounds.width - ts.width) * 0.5, bounds.height - self.targetoffs * 0.5 - ts.height * 1.5))
@@ -258,21 +259,21 @@ class GameRenderer(object):
             else:
                 self.drawHits.remove((hittime, timing))
 
-        if game.combo or game.bestCombo:
+        if stats.combo or stats.bestCombo:
             combopos = bounds.height - self.targetoffs * 0.5 + self.mediumFont.get_height() * 0.5
 
-        if game.combo:
-            if game.combo != self.drawnCombo:
-                self.comboSurf = self.renderText("%i combo" % game.combo, self.mediumFont, txtcolors["combo"], direct=True)
-                self.drawnCombo = game.combo
+        if stats.combo:
+            if stats.combo != self.drawnCombo:
+                self.comboSurf = self.renderText("%i combo" % stats.combo, self.mediumFont, txtcolors["combo"], direct=True)
+                self.drawnCombo = stats.combo
 
             ts = self.comboSurf.get_rect()
             screen.blit(self.comboSurf, ((bounds.width - ts.width) * 0.5, combopos))
 
-        if game.bestCombo:
-            if game.bestCombo != self.drawnBestCombo:
-                self.bestComboSurf = self.renderText("%i best" % game.bestCombo, self.smallFont, txtcolors["best-combo"], direct=True)
-                self.drawnBestCombo = game.bestCombo
+        if stats.bestCombo:
+            if stats.bestCombo != self.drawnBestCombo:
+                self.bestComboSurf = self.renderText("%i best" % stats.bestCombo, self.smallFont, txtcolors["best-combo"], direct=True)
+                self.drawnBestCombo = stats.bestCombo
 
             ts = self.bestComboSurf.get_rect()
             screen.blit(self.bestComboSurf, ((bounds.width - ts.width) * 0.5, combopos + self.mediumFont.get_height()))

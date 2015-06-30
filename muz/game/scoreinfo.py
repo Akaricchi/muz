@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 from collections import namedtuple
 
-ScoreInfo = namedtuple("Timing", ["name", "threshold", "breakscombo", "score"])
+ScoreInfo = namedtuple("ScoreInfo", ["name", "threshold", "breakscombo", "score"])
 
 values = (
     ScoreInfo("Miss",   1000, True,     0),

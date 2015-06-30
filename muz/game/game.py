@@ -14,6 +14,36 @@ from muz.game import config, log
 
 import random
 
+class Stats(object):
+    def __init__(self):
+        self.comboScoreFactor = 0.005
+        self._combo = 0
+        self.bestCombo = 0
+        self.score = 0
+        self.comboBroken = 0
+        self.accLog = collections.Counter()
+
+    def registerScore(self, sinfo):
+        self.accLog[sinfo] += 1
+        self.score += sinfo.score + int(sinfo.score * (self.combo * self.comboScoreFactor))
+        print self.accLog
+
+        if sinfo.breakscombo:
+            self.combo = 0
+            self.comboBroken += 1
+        else:
+            self.combo += 1
+
+    @property
+    def combo(self):
+        return self._combo
+
+    @combo.setter
+    def combo(self, v):
+        self._combo = v
+        if v > self.bestCombo:
+            self.bestCombo = v
+
 class Band(object):
     def __init__(self, num):
         self.heldNote = None
@@ -29,15 +59,11 @@ class Game(object):
         self.oldTime = self.time
         self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
         self.removeNotes = []
-        self.combo = 0
-        self.bestCombo = 0
         self.defaultNoterate = config["noterate"]
         self.maxNoterate = config["max-noterate"]
         self.noteratePerCombo = config["noterate-per-combo"]
         self.noterateGain = config["noterate-gain-speed"]
         self.noterate = self.defaultNoterate
-        self.score = 0
-        self.comboScoreFactor = 0.005
 
         self.hitSound = muz.assets.sound("hit")
         self.releaseSound = muz.assets.sound("release")
@@ -78,6 +104,7 @@ class Game(object):
         self.initKeymap()
 
         self._time = 0
+        self.stats = Stats()
 
         if not config["start-paused"]:
             self.start()
@@ -155,9 +182,7 @@ class Game(object):
             self.stop()
 
     def resetScore(self):
-        self.score = 0
-        self.combo = 0
-        self.bestCombo = 0
+        self.stats = Stats()
 
     def start(self, refreshBeatmap=True):
         if refreshBeatmap:
@@ -202,16 +227,6 @@ class Game(object):
         self.timeSyncAccumulator = 9001
         self.start(refreshBeatmap=offs < 0)
 
-    def registerCombo(self, timing):
-        if timing.breakscombo:
-            self.combo = 0
-            if self.fcRun:
-                self.needRestart = True
-        else:
-            self.combo += 1
-            if self.combo > self.bestCombo:
-                self.bestCombo = self.combo
-
     def registerScore(self, delta):
         delta = abs(delta)
         t = muz.game.scoreinfo.miss
@@ -223,9 +238,11 @@ class Game(object):
         if self.perfectRun and t is not muz.game.scoreinfo.perfect:
             self.needRestart = True
 
-        self.score += t.score + int(t.score * (self.combo * self.comboScoreFactor))
-        self.registerCombo(t)
+        self.stats.registerScore(t)
         self.renderer.displayScoreInfo(t)
+
+        if self.fcRun and self.stats.comboBroken:
+            self.needRestart = True
 
     def registerHit(self, band):
         if self.paused: return
@@ -258,7 +275,7 @@ class Game(object):
             self.playSound(self.releaseSound)
 
     def registerMiss(self, note, delta):
-        self.registerCombo(muz.game.scoreinfo.miss)
+        self.stats.registerScore(muz.game.scoreinfo.miss)
         self.removeNote(note)
         self.renderer.displayScoreInfo(muz.game.scoreinfo.miss)
 
@@ -348,7 +365,7 @@ class Game(object):
         deltatime = self.time - self.oldTime
 
         self.noterate = clamp(0,
-            self.noterate + (self.defaultNoterate + self.combo * self.noteratePerCombo - self.noterate) *
+            self.noterate + (self.defaultNoterate + self.stats.combo * self.noteratePerCombo - self.noterate) *
             (deltatime / 1000.0) * self.noterateGain,
         self.maxNoterate)
 
