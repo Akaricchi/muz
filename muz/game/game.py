@@ -196,8 +196,6 @@ class Game(object):
         self.started = True
         self.paused = False
         self.justStarted = True
-        self.deltaBuffer = 0
-        self.frames = 0
 
         del self.removeNotes[:]
 
@@ -210,6 +208,9 @@ class Game(object):
             return
 
         pygame.mixer.music.play(0, self.timeOffset / 1000.0)
+        self.time = self.timeOffset
+        self.lastmtime = self.time
+        self.oldTime = self.time
         self.paused = False
 
     def stop(self):
@@ -327,7 +328,7 @@ class Game(object):
                 self.registerMiss(note, abs(d))
 
         _time = self.time
-        mtime = pygame.mixer.music.get_pos()
+        mtime = pygame.mixer.music.get_pos() + self.timeOffset
 
         if mtime < 0:
             self.time += dt
@@ -336,7 +337,7 @@ class Game(object):
         elif self.timeSyncAccumulator >= 500:
             log.debug("forced time sync")
             self.lastmtime = mtime
-            self.time = mtime + self.timeOffset
+            self.time = mtime
             self.timeSyncAccumulator = 0
         elif mtime == self.lastmtime and config["interpolate-music-time"]:
             if dt:
@@ -353,7 +354,7 @@ class Game(object):
             self.timeSyncAccumulator += dt
         else:
             self.lastmtime = mtime
-            self.time = mtime + self.timeOffset
+            self.time = mtime
             self.timeSyncAccumulator = 0
 
         if int(self.time) < int(self.oldTime):
