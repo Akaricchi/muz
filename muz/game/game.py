@@ -26,7 +26,6 @@ class Stats(object):
     def registerScore(self, sinfo):
         self.accLog[sinfo] += 1
         self.score += sinfo.score + int(sinfo.score * (self.combo * self.comboScoreFactor))
-        print self.accLog
 
         if sinfo.breakscombo:
             self.combo = 0
