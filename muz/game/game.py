@@ -179,7 +179,7 @@ class Game(object):
         if self.paused:
             self.resume()
         else:
-            self.stop()
+            self.pause()
 
     def resetScore(self):
         self.stats = Stats()
@@ -207,11 +207,12 @@ class Game(object):
             self.start()
             return
 
-        pygame.mixer.music.play(0, self.timeOffset / 1000.0)
-        self.time = self.timeOffset
-        self.lastmtime = self.time
-        self.oldTime = self.time
+        pygame.mixer.music.unpause()
         self.paused = False
+
+    def pause(self):
+        pygame.mixer.music.pause()
+        self.paused = True
 
     def stop(self):
         self.timeOffset = self.time
