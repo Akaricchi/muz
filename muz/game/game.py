@@ -95,6 +95,7 @@ class Game(object):
         self.started = False
         self.needRestart = False
         self.paused = True
+        self.finished = False
 
         self.renderer = renderercls(self)
 
@@ -193,6 +194,7 @@ class Game(object):
         self.lastmtime = self.time
         self.started = True
         self.paused = False
+        self.finished = False
         self.justStarted = True
 
         del self.removeNotes[:]
@@ -332,6 +334,10 @@ class Game(object):
 
         if mtime < 0:
             self.time += dt
+            
+            if not self.finished:
+                self.renderer.gameFinished()
+                self.finished = True
         elif mtime < 300:
             self.time = self.lastmtime = mtime
         elif self.timeSyncAccumulator >= 500:

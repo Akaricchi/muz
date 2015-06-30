@@ -7,13 +7,14 @@ import pygame
 import muz
 import muz.config
 import muz.game.scoreinfo as scoreinfo
-from muz.util import mix, clamp
+from muz.util import mix, clamp, approach
 
 config = muz.config.get(__name__, {
     "antialias-text"    : True,
     "show-timing-hints" : False,
     "render-text"       : True,
     "show-nearest-note" : False,
+    "overlay-alpha"     : 0.66,
 
     "fonts": {
         "big"           : ["xolonium", 32, False],
@@ -46,6 +47,10 @@ config = muz.config.get(__name__, {
             "fps"       : [100, 100, 100],
             "time"      : [100, 100, 100],
             "autoplay"  : [255, 255, 100],
+
+            "results-title"   : [200, 200, 200],
+            "results-caption" : [200, 200, 200],
+            "results-value"   : [200, 200, 200],
         }
     }
 })
@@ -70,12 +75,14 @@ class GameRenderer(object):
         self.drawnScore = -1
         self.drawnCombo = -1
         self.drawnBestCombo = -1
+        self.resultsFadeIn = 0.0
 
         self.bigFont    = muz.assets.font(*config["fonts"]["big"])
         self.mediumFont = muz.assets.font(*config["fonts"]["medium"])
         self.smallFont  = muz.assets.font(*config["fonts"]["small"])
         self.tinyFont   = muz.assets.font(*config["fonts"]["tiny"])
 
+        self.overlayAlpha = config["overlay-alpha"] * 255
         self.antialias = config["antialias-text"]
 
         if not config["render-text"]:
@@ -111,6 +118,9 @@ class GameRenderer(object):
     def bandReleased(self, band):
         self.bands[band].held = False
 
+    def gameFinished(self):
+        pass
+
     def prepareDraw(self, screen):
         bounds = screen.get_rect()
         game = self.game
@@ -121,11 +131,11 @@ class GameRenderer(object):
         self.targetoffs = bounds.height * 0.33
 
         self.overlaySurf = pygame.Surface((bounds.width, math.ceil(self.targetoffs)))
-        self.overlaySurf.set_alpha(168)
+        self.overlaySurf.set_alpha(self.overlayAlpha)
         self.overlaySurf.fill((0, 0, 0))
 
         self.pauseOverlaySurf = pygame.Surface((bounds.width, bounds.height - math.ceil(self.targetoffs)))
-        self.pauseOverlaySurf.set_alpha(168)
+        self.pauseOverlaySurf.set_alpha(self.overlayAlpha)
         self.pauseOverlaySurf.fill((0, 0, 0))        
 
         self.pausedTextSurf = self.renderText("Paused", self.bigFont, txtcolors["pause"], direct=True)
@@ -157,6 +167,30 @@ class GameRenderer(object):
         self.bandAccSurf.set_colorkey((0, 0, 0, 0))
         self.bandAccSurf.set_alpha(25)
 
+        #
+        #   results
+        #
+
+        self.resultsTitleSurf = self.renderText("Results", self.bigFont, txtcolors["results-title"])
+        self.resultsAcc = {
+            s: self.renderText(s.name, self.mediumFont, txtcolors[s.name.lower()])
+                for s in scoreinfo.values
+        }
+
+        self.resultsCaptions = []
+        self.resultsCaptions.append((
+            self.renderText("Score", self.mediumFont, txtcolors["results-caption"]),
+            lambda: game.stats.score
+        ))
+        self.resultsCaptions.append((
+            self.renderText("Best Combo", self.mediumFont, txtcolors["results-caption"]),
+            lambda: game.stats.bestCombo
+        ))
+        #self.resultsCaptions.append((
+        #    self.renderText("Combo Breaks", self.mediumFont, txtcolors["results-caption"]),
+        #    lambda: game.stats.comboBroken
+        #))
+
         self.prepareDrawNeeded = False
 
     def draw(self, screen):
@@ -167,6 +201,13 @@ class GameRenderer(object):
         stats = game.stats
         colors = config["colors"]
         txtcolors = colors["text"]
+        dt = game.clock.get_time()
+
+        if game.finished:
+            self.resultsFadeIn = approach(self.resultsFadeIn, 1.0, dt / 1250.0)
+            uiAlpha = 255 * (1 - self.resultsFadeIn)
+        else:
+            uiAlpha = 255
 
         if self.time > self.updateFpsTime:
             self.fpsSurf = self.renderText("%i FPS" % game.clock.get_fps(), self.smallFont, txtcolors["fps"], direct=True)
@@ -248,6 +289,9 @@ class GameRenderer(object):
 
         if game.paused:
             screen.blit(self.pauseOverlaySurf, (0, 0))
+        elif game.finished:
+            self.pauseOverlaySurf.set_alpha(self.overlayAlpha * self.resultsFadeIn)
+            screen.blit(self.pauseOverlaySurf, (0, 0))
         else:
             screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))
 
@@ -255,10 +299,11 @@ class GameRenderer(object):
         screen.blit(self.nameSurf, ((bounds.width - ts.width) * 0.5, bounds.height - ts.height))
 
         if stats.score != self.drawnScore:
-            self.scoreSurf = self.renderText(str(int(stats.score)), self.bigFont, txtcolors["score"], direct=True)
+            self.scoreSurf = self.renderText(str(int(stats.score)), self.bigFont, txtcolors["score"])
             self.drawnScore = stats.score
 
         ts = self.scoreSurf.get_rect()
+        self.scoreSurf.set_alpha(uiAlpha)
         screen.blit(self.scoreSurf, ((bounds.width - ts.width) * 0.5, bounds.height - self.targetoffs * 0.5 - ts.height * 1.5))
 
         for hittime, timing in self.drawHits:
@@ -282,24 +327,33 @@ class GameRenderer(object):
 
         if stats.combo:
             if stats.combo != self.drawnCombo:
-                self.comboSurf = self.renderText("%i combo" % stats.combo, self.mediumFont, txtcolors["combo"], direct=True)
+                self.comboSurf = self.renderText("%i combo" % stats.combo, self.mediumFont, txtcolors["combo"])
                 self.drawnCombo = stats.combo
 
             ts = self.comboSurf.get_rect()
+            self.comboSurf.set_alpha(uiAlpha)
             screen.blit(self.comboSurf, ((bounds.width - ts.width) * 0.5, combopos))
 
         if stats.bestCombo:
             if stats.bestCombo != self.drawnBestCombo:
-                self.bestComboSurf = self.renderText("%i best" % stats.bestCombo, self.smallFont, txtcolors["best-combo"], direct=True)
+                self.bestComboSurf = self.renderText("%i best" % stats.bestCombo, self.smallFont, txtcolors["best-combo"])
                 self.drawnBestCombo = stats.bestCombo
 
             ts = self.bestComboSurf.get_rect()
+            self.bestComboSurf.set_alpha(uiAlpha)
             screen.blit(self.bestComboSurf, ((bounds.width - ts.width) * 0.5, combopos + self.mediumFont.get_height()))
 
-        if game.paused:
+        if game.paused or game.finished:
+            if game.finished:
+                self.overlaySurf.set_alpha(self.overlayAlpha * self.resultsFadeIn)
+
             screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))
             ts = self.pausedTextSurf.get_rect()
-            screen.blit(self.pausedTextSurf, ((bounds.width - ts.width) * 0.5, (bounds.height - ts.height) * 0.5))
+
+            if game.paused:
+                screen.blit(self.pausedTextSurf, ((bounds.width - ts.width) * 0.5, (bounds.height - ts.height) * 0.5))
+            else:
+                self.drawResults()
 
         if game.autoplay:
             screen.blit(self.autoplaySurf, (0, bounds.height - self.autoplaySurf.get_rect().height))
@@ -311,5 +365,49 @@ class GameRenderer(object):
         ts = s.get_rect()
         screen.blit(s, (bounds.width - ts.width, bounds.height - ts.height * 2))
 
-        self.time += game.clock.get_time()
+        self.time += dt
+
+    def drawResults(self):
+        screen = self.screen
+        bounds = screen.get_rect()
+        game = self.game
+        a = self.resultsFadeIn * 255
+
+        titlesz = self.resultsTitleSurf.get_rect()
+        entryheight = self.mediumFont.get_height()
+
+        self.resultsTitleSurf.set_alpha(a)
+        p = pygame.Rect((0, 0, bounds.width * 0.5, bounds.height * 0.5 - self.mediumFont.get_height() * 6))
+
+        screen.blit(self.resultsTitleSurf, (p.width - titlesz.width * 0.5, p.height))
+        p.height += titlesz.height + entryheight * 0.5
+
+        txtcolors = config["colors"]["text"]
+        gap = 10
+
+        for sinfo in reversed(scoreinfo.values):
+            s = self.resultsAcc[sinfo]
+            s.set_alpha(a)
+            sz = s.get_rect()
+            screen.blit(s, (p.width - gap - sz.width, p.height))
+
+            s = self.renderText(str(int(game.stats.accLog[sinfo] * self.resultsFadeIn)), self.mediumFont, txtcolors["results-value"])
+            s.set_alpha(a)
+            screen.blit(s, (p.width + gap, p.height))
+
+            p.height += sz.height
+
+        p.height += entryheight * 0.5
+
+        for cap in self.resultsCaptions:
+            s = cap[0]
+            s.set_alpha(a)
+            sz = s.get_rect()
+            screen.blit(s, (p.width - gap - sz.width, p.height))
+
+            s = self.renderText(str(int(cap[1]() * self.resultsFadeIn)), self.mediumFont, txtcolors["results-value"])
+            s.set_alpha(a)
+            screen.blit(s, (p.width + gap, p.height))
+
+            p.height += sz.height
 
