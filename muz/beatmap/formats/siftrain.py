@@ -95,7 +95,7 @@ def write(bmap, fobj):
         "rank_info"         : [{
             "rank"          : i,
             "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
-        } for i in xrange(1, 6)],
+        } for i in xrange(5, 0, -1)],
         "song_info"         : [{
             "notes_speed"   : meta["siftrain.song_info.notes_speed"],
             "notes"         : notes
