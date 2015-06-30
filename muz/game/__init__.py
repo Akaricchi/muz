@@ -53,7 +53,7 @@ config = muz.config.get(__name__, {
             "3": {
                 "f"         :       "band:0",
                 "space"     :       "band:1",
-                "j"         :       "band:1",
+                "j"         :       "band:2",
             },
 
             "4": {
