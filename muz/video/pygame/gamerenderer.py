@@ -50,6 +50,12 @@ config = muz.config.get(__name__, {
     }
 })
 
+class Band(object):
+    def __init__(self):
+        self.held = False
+        self.flash = 0
+        self.offset = 0
+
 class GameRenderer(object):
     def __init__(self, game):
         self.game = game
@@ -59,7 +65,7 @@ class GameRenderer(object):
         self.time = 0
 
         self.showTimingHints = config["show-timing-hints"]
-        self.bandoffsets = [0] * len(self.game.bands)
+        self.bands = tuple(Band() for i in xrange(len(self.game.bands)))
         self.drawHits = []
         self.drawnScore = -1
         self.drawnCombo = -1
@@ -98,6 +104,13 @@ class GameRenderer(object):
         s.set_colorkey(ckey)
         return s
 
+    def bandPressed(self, band):
+        self.bands[band].held = True
+        self.bands[band].flash = self.time
+
+    def bandReleased(self, band):
+        self.bands[band].held = False
+
     def prepareDraw(self, screen):
         bounds = screen.get_rect()
         game = self.game
@@ -127,7 +140,7 @@ class GameRenderer(object):
         self.noteHitSurf.fill(colors["highlight"])
 
         for band in xrange(game.beatmap.numbands):
-            self.bandoffsets[band] = (band * self.bandWidth) / gapFactor + bandShift
+            self.bands[band].offset = (band * self.bandWidth) / gapFactor + bandShift
 
         self.scoreInfoColors = {
             s: txtcolors[s.name.lower()]
@@ -171,9 +184,14 @@ class GameRenderer(object):
                 toffs = (s.threshold * noterate)
                 pygame.draw.rect(self.bandAccSurf, self.scoreInfoColors[s], (0, bounds.height - self.targetoffs - toffs, bandWidth, toffs * 2), 0)
 
-        for idx, band in enumerate(game.bands):
-            o = self.bandoffsets[idx]
-            flash = 1.0 - clamp(0, (game.time - band.flash) / 1000.0, 1)
+        for band in self.bands:
+            o = band.offset
+
+            if band.held:
+                band.flash = self.time
+                flash = 1.0
+            else:
+                flash = 1.0 - clamp(0, (self.time - band.flash) / 1000.0, 1)
 
             if flash:
                 pygame.draw.rect(screen, mix(colors["background"], colors["bandflash"], flash * flash), (o, 0, bandWidth, bounds.height), 0)
@@ -197,7 +215,7 @@ class GameRenderer(object):
                 continue
 
             band = game.bands[note.band]
-            bandoffs = self.bandoffsets[note.band]
+            bandoffs = self.bands[note.band].offset
             o = bounds.height - hitdiff * noterate
 
             if band.heldNote == note:
@@ -220,9 +238,9 @@ class GameRenderer(object):
 
             pygame.draw.rect(screen, clr1, (bandoffs, o, bandWidth, 5), 0)
 
-        for idx, band in enumerate(game.bands):
-            o = self.bandoffsets[idx]
-            flash = 1.0 - clamp(0, 5 * (game.time - band.flash) / 1000.0, 1)
+        for band in self.bands:
+            o = band.offset
+            flash = 1.0 - clamp(0, 5 * (self.time - band.flash) / 1000.0, 1)
 
             if flash:
                 self.noteHitSurf.set_alpha(255 * flash)

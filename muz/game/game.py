@@ -46,7 +46,6 @@ class Stats(object):
 class Band(object):
     def __init__(self, num):
         self.heldNote = None
-        self.flash = 0
         self.num = num
 
 class Game(object):
@@ -198,9 +197,6 @@ class Game(object):
 
         del self.removeNotes[:]
 
-        for band in self.bands:
-            band.flash = self.time
-
     def resume(self):
         if not self.started:
             self.start()
@@ -250,8 +246,8 @@ class Game(object):
 
     def registerHit(self, band):
         if self.paused: return
+        self.renderer.bandPressed(band.num)
 
-        band.flash = self.time
         note = self.beatmap.nearest(band.num, self.time, muz.game.scoreinfo.miss.threshold)
 
         if note is None:
@@ -270,12 +266,12 @@ class Game(object):
 
     def registerRelease(self, band):
         if self.paused: return
+        self.renderer.bandReleased(band.num)
 
         if band.heldNote:
             self.registerScore(self.time - band.heldNote.hitTime - band.heldNote.holdTime)
             self.removeNote(band.heldNote)
             band.heldNote = None
-            band.flash = self.time
             self.playSound(self.releaseSound)
 
     def registerMiss(self, note, delta):
@@ -309,16 +305,14 @@ class Game(object):
                 log.debug("removing a note failed, wtf?", exc_info=True)
         del self.removeNotes[:]
 
-        for band in self.bands:
-            if band.heldNote:
-                band.flash = self.time
-
         for note in self.beatmap:
             d = note.hitTime + note.holdTime - self.time
 
             if self.autoplay:
                 if d - note.holdTime <= 0 and self.bands[note.band].heldNote is not note:
                     self.registerHit(self.bands[note.band])
+                    if not note.holdTime:
+                        self.registerRelease(self.bands[note.band])
 
                 if d <= 0 and self.bands[note.band].heldNote is note:
                     self.registerRelease(self.bands[note.band])
