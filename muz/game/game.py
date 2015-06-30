@@ -306,6 +306,7 @@ class Game(object):
                 break
 
             if d < -muz.game.scoreinfo.bad.threshold or (d < 0 and note is not self.beatmap.nearest(note.band, self.time, muz.game.scoreinfo.miss.threshold)):
+            #if d < -muz.game.scoreinfo.miss.threshold:
                 self.registerMiss(note, abs(d))
 
         _time = self.time

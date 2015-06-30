@@ -13,6 +13,7 @@ config = muz.config.get(__name__, {
     "antialias-text"    : True,
     "show-timing-hints" : False,
     "render-text"       : True,
+    "show-nearest-note" : False,
 
     "fonts": {
         "big"           : ["xolonium", 32, False],
@@ -28,6 +29,7 @@ config = muz.config.get(__name__, {
         "note"          : [200,  70,   0],
         "holdbeam"      : [125,  70,   0],
         "highlight"     : [  0, 100, 150],
+        "nearest-note"  : [  0, 255,   0],
 
         "text": {
             "perfect"   : [125, 255, 255],
@@ -204,6 +206,10 @@ class GameRenderer(object):
             else:
                 clr1 = colors["note"]
                 clr2 = colors["holdbeam"]
+
+            if config["show-nearest-note"] and game.beatmap.nearest(note.band, game.time, muz.game.scoreinfo.miss.threshold) is note:
+                clr1 = (0, 255, 0)
+                clr2 = (0, 255, 0)
 
             if note.holdTime:
                 x = bounds.height - holddiff * noterate
