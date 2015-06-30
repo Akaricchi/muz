@@ -129,7 +129,7 @@ class Beatmap(collections.MutableSequence):
 
         for n in self:
             if n.band == band:
-                d = n.hitTime - time
+                d = n.hitTime + n.holdTime - time
                 if d >= maxdiff:
                     break
 
