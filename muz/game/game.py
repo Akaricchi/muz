@@ -208,11 +208,13 @@ class Game(object):
             return
 
         pygame.mixer.music.unpause()
+
         self.paused = False
 
     def pause(self):
-        pygame.mixer.music.pause()
-        self.paused = True
+        if pygame.mixer.music.get_busy():
+            pygame.mixer.music.pause()
+            self.paused = True
 
     def stop(self):
         self.timeOffset = self.time
@@ -220,7 +222,8 @@ class Game(object):
         self.paused = True
 
     def seek(self, offs):
-        if not offs or self.paused: return
+        if not offs or self.paused or not pygame.mixer.music.get_busy():
+            return
 
         self.stop()
         self.timeOffset = max(0, self.timeOffset + offs)
