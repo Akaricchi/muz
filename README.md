@@ -64,7 +64,7 @@ To install osu! beatmaps, simply place the osz files into the user directory, as
 ### SIFTrain
 SIFTrain beatmaps can be found in [**this repository**](https://github.com/kbz/beatmap-repo). They are beatmaps from Love Live! School Idol Festival, and come with no music - you'll have to obtain it yourself.
 
-To install these beatmaps, create a ```beatmaps``` folder inside the user directory and put them there. Put the music files in the same directory, named **beatmapname.ogg**, where beatmapname referes to the name as reported by ```muz -l```.
+To install these beatmaps, create a ```beatmaps``` folder inside the user directory and put them there. Put the music files in the same directory, named **songname.ogg**. The easiest way to find out the song name is to try to run the beatmap without music and read the error message.
 
 ### LLpractice
 μz can automatically download and install beatmaps from [m.tianyi9.com](https://m.tianyi9.com/#/index). Visit the site and click on the song you want to get. Look at the URL, there should be a **live_id** parameter. Copy its value, and run:
