@@ -39,14 +39,19 @@ DIFFICULTY_TO_ID = {
 def read(fobj):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):])
-    name = data["song_name"].replace("/", "_").encode('utf-8')
-    bmap = muz.beatmap.Beatmap(None, 9, "%s.ogg" % name)
     songinfo = data["song_info"][0]
 
-    timeofs = 0
+    if "___muz_song_file" in data: # non-"standard"
+        mus = data["___muz_song_file"]
+    else:
+        mus = "%s.ogg" % data["song_name"].replace("/", "_").encode('utf-8')
 
-    if "___muz_time_offset" in data:    # non-"standard"
+    bmap = muz.beatmap.Beatmap(None, 9, mus)
+
+    if "___muz_time_offset" in data: # non-"standard"
         timeofs = int(data["___muz_time_offset"])
+    else:
+        timeofs = 0
 
     for note in songinfo["notes"]:
         hitTime = int(note["timing_sec"] * 1000) + timeofs
@@ -60,12 +65,14 @@ def read(fobj):
         bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
 
     bmap.meta["Music.Name"] = data["song_name"]
+    bmap.meta["siftrain.song_name"] = data["song_name"]
 
     try:
         bmap.meta["Beatmap.Variant"] = ID_TO_DIFFICULTY[data["difficulty"]]
     except (KeyError, TypeError):
         log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
 
+    bmap.meta["siftrain.difficulty"] = data["difficulty"]
     bmap.meta["siftrain.song_info.notes_speed"] = songinfo["notes_speed"]
 
     for rank in data["rank_info"]:
@@ -74,3 +81,45 @@ def read(fobj):
     bmap.applyMeta()
     return bmap
 
+def write(bmap, fobj):
+    bmap.fix()
+    meta = bmap.meta
+    notes = []
+
+    root = {
+        "___muz_song_file"  : bmap.music,
+        "song_name"         : meta["siftrain.song_name"] or meta["Music.Name"] or meta["Music.Name.ASCII"],
+        "difficulty"        : int(meta["siftrain.difficulty"])
+                              if meta["siftrain.difficulty"] else
+                              DIFFICULTY_TO_ID[meta["Beatmap.Variant"]],
+        "rank_info"         : [{
+            "rank"          : i,
+            "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
+        } for i in xrange(1, 6)],
+        "song_info"         : [{
+            "notes_speed"   : meta["siftrain.song_info.notes_speed"],
+            "notes"         : notes
+        }]
+    }
+
+    p = None
+    pn = None
+
+    for note in bmap:
+        n = {
+            "timing_sec"    : note.hitTime / 1000.0,
+            "effect"        : FLAG_HOLD if note.holdTime else FLAG_NORMAL,
+            "effect_value"  : (note.holdTime / 1000.0) if note.holdTime else 2,
+            "position"      : 9 - note.band
+        }
+
+        if p is not None and note.hitTime == pn.hitTime:
+            p["effect"] |= FLAG_SIMULT_START
+            n["effect"] |= FLAG_SIMULT_START
+
+        p = n
+        pn = note
+        notes.append(n)
+
+    print root
+    json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))

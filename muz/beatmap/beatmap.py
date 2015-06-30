@@ -74,7 +74,6 @@ class Beatmap(collections.MutableSequence):
         self.name = name
         self.music = music
         self._musicFile = musicFile
-        self.music = music
         self.vfsNode = vfsNode
 
         try:
@@ -211,7 +210,7 @@ class Beatmap(collections.MutableSequence):
 
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)
-        self.applyMeta()
+        #self.applyMeta()
 
 class BeatmapBuilder(object):
     def __init__(self, mapname, numbands, msrclist, meta=None):
