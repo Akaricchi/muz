@@ -40,6 +40,7 @@ config = muz.config.get(__name__, {
             "pause"     : [200, 200, 200],
             "score"     : [200, 200, 200],
             "combo"     : [200, 200, 200],
+            "best-combo": [150, 150, 150],
             "fps"       : [100, 100, 100],
             "time"      : [100, 100, 100],
             "autoplay"  : [255, 255, 100],
@@ -60,6 +61,7 @@ class GameRenderer(object):
         self.drawHits = []
         self.drawnScore = -1
         self.drawnCombo = -1
+        self.drawnBestCombo = -1
 
         self.bigFont    = muz.assets.font(*config["fonts"]["big"])
         self.mediumFont = muz.assets.font(*config["fonts"]["medium"])
@@ -250,13 +252,24 @@ class GameRenderer(object):
             else:
                 self.drawHits.remove((hittime, timing))
 
+        if game.combo or game.bestCombo:
+            combopos = bounds.height - self.targetoffs * 0.5 + self.mediumFont.get_height() * 0.5
+
         if game.combo:
             if game.combo != self.drawnCombo:
                 self.comboSurf = self.renderText("%i combo" % game.combo, self.mediumFont, txtcolors["combo"], direct=True)
                 self.drawnCombo = game.combo
 
             ts = self.comboSurf.get_rect()
-            screen.blit(self.comboSurf, ((bounds.width - ts.width) * 0.5, bounds.height - self.targetoffs * 0.5 + ts.height * 0.5))
+            screen.blit(self.comboSurf, ((bounds.width - ts.width) * 0.5, combopos))
+
+        if game.bestCombo:
+            if game.bestCombo != self.drawnBestCombo:
+                self.bestComboSurf = self.renderText("%i best" % game.bestCombo, self.smallFont, txtcolors["best-combo"], direct=True)
+                self.drawnBestCombo = game.bestCombo
+
+            ts = self.bestComboSurf.get_rect()
+            screen.blit(self.bestComboSurf, ((bounds.width - ts.width) * 0.5, combopos + self.mediumFont.get_height()))
 
         if game.paused:
             screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))

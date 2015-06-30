@@ -30,6 +30,7 @@ class Game(object):
         self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
         self.removeNotes = []
         self.combo = 0
+        self.bestCombo = 0
         self.defaultNoterate = config["noterate"]
         self.maxNoterate = config["max-noterate"]
         self.noteratePerCombo = config["noterate-per-combo"]
@@ -156,6 +157,7 @@ class Game(object):
     def resetScore(self):
         self.score = 0
         self.combo = 0
+        self.bestCombo = 0
 
     def start(self, refreshBeatmap=True):
         if refreshBeatmap:
@@ -207,6 +209,8 @@ class Game(object):
                 self.needRestart = True
         else:
             self.combo += 1
+            if self.combo > self.bestCombo:
+                self.bestCombo = self.combo
 
     def registerScore(self, delta):
         delta = abs(delta)
