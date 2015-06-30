@@ -328,7 +328,10 @@ class Game(object):
                 self.registerMiss(note, abs(d))
 
         _time = self.time
-        mtime = pygame.mixer.music.get_pos() + self.timeOffset
+        mtime = pygame.mixer.music.get_pos()
+
+        if mtime >= 0:
+            mtime += self.timeOffset
 
         if mtime < 0:
             self.time += dt
