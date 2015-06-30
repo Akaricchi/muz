@@ -309,6 +309,7 @@ class VirtualDirectory(Node, collections.MutableMapping):
         self.isDir = True
         self.dict = {}
         self.name = "<virtual>"
+        self.parent = self
 
         self[VPATH_SELF] = self
         self[VPATH_PARENT] = self
@@ -348,14 +349,6 @@ class VirtualDirectory(Node, collections.MutableMapping):
             vd[f].parent = vd
 
         return vd
-
-    def getParent(self):
-        return self[VPATH_PARENT]
-
-    def setParent(self, p):
-        self[VPATH_PARENT] = p
-
-    parent = property(getParent, setParent)
 
     @staticmethod
     def canLoadPack(packpath):
@@ -416,10 +409,6 @@ class RootDirectory(VirtualDirectory):
         super(RootDirectory, self).__init__(*args, **kwargs)
         self.name = "<root>"
 
-    @property
-    def parent(self):
-        return self
-
     def locate(self, vpath, *args, **kwargs):
         tryLocal = config["try-local"]
 
@@ -472,8 +461,6 @@ class ZipArchiveFile(Node):
         return "ZipArchiveFile(%s, %s)" % (repr(self.zipPath), repr(self.name))
 
 class ZipArchive(VirtualDirectory):
-    parent = property(VirtualDirectory.getParent, VirtualDirectory.setParent)
-
     def __init__(self, path):
         super(ZipArchive, self).__init__()
         self.isDir = True
