@@ -11,7 +11,7 @@ import muz.beatmap
 from StringIO import StringIO
 
 extensions = ["pk3", "osz"]
-locations = [""]
+locations = ["."]
 
 class PackError(Exception):
     pass

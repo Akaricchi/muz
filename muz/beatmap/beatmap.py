@@ -290,7 +290,7 @@ def load(name):
 
     if "." in name:
         a = name.split(".")
-        if " " not in a[-1]:
+        if " " not in a[-1] and "/" not in a[-1]:
             wantext = a[-1]
             name = ".".join(a[:-1])
 
