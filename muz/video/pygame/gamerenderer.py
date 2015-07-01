@@ -292,6 +292,7 @@ class GameRenderer(object):
         elif game.finished:
             self.pauseOverlaySurf.set_alpha(self.overlayAlpha * self.resultsFadeIn)
             screen.blit(self.pauseOverlaySurf, (0, 0))
+            screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))
         else:
             screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))
 
@@ -343,17 +344,12 @@ class GameRenderer(object):
             self.bestComboSurf.set_alpha(uiAlpha)
             screen.blit(self.bestComboSurf, ((bounds.width - ts.width) * 0.5, combopos + self.mediumFont.get_height()))
 
-        if game.paused or game.finished:
-            if game.finished:
-                self.overlaySurf.set_alpha(self.overlayAlpha * self.resultsFadeIn)
-
+        if game.paused:
             screen.blit(self.overlaySurf, (0, bounds.height - self.targetoffs))
             ts = self.pausedTextSurf.get_rect()
-
-            if game.paused:
-                screen.blit(self.pausedTextSurf, ((bounds.width - ts.width) * 0.5, (bounds.height - ts.height) * 0.5))
-            else:
-                self.drawResults()
+            screen.blit(self.pausedTextSurf, ((bounds.width - ts.width) * 0.5, (bounds.height - ts.height) * 0.5))
+        elif game.finished:
+            self.drawResults()
 
         if game.autoplay:
             screen.blit(self.autoplaySurf, (0, bounds.height - self.autoplaySurf.get_rect().height))
