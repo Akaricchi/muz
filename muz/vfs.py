@@ -66,14 +66,14 @@ class Node(object):
         if not isinstance(vpath, unicode):
             vpath = vpath.decode('utf-8')
 
-        log.debug("locating %s in %s", repr(vpath), repr(self.name))
+        log.debug("locating %s in %s", vpath, self.name)
 
         o = None
         f = self
 
         for sub in iterPath(vpath):
             if f is put:
-                raise VFSError("Malformed virtual path %s" % repr(vpath))
+                raise VFSError("Malformed virtual path %s" % vpath)
 
             if sub in f:
                 o = f
@@ -87,14 +87,14 @@ class Node(object):
                 put.parent = f
                 f = put
             else:
-                raise NodeNotFoundError("Virtual path %s not found" % repr(vpath))
+                raise NodeNotFoundError("Virtual path %s not found" % vpath)
 
         if o is not None and put is not None:
             o[sub] = put
             f = o[sub]
             f.parent = o
 
-        log.debug("found %s in the vfs", repr(vpath))
+        log.debug("found %s in the vfs", vpath)
         return f
 
     def merge(self, n):
@@ -137,7 +137,7 @@ class Node(object):
                 tmp.seek(0)
         else:
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".%s" % self.name.split('.')[-1])
-            log.info("created temporary file %s", repr(tmp.name))
+            log.info("created temporary file %s", tmp.name)
             tempfiles.append(tmp)
             self._temp = tmp
 
@@ -169,7 +169,7 @@ class Node(object):
 
             raise NoAlternativeError
         except Exception:
-            log.debug("alternative for %s doesn't exist", repr(self.name), exc_info=True)
+            log.debug("alternative for %s doesn't exist", self.name, exc_info=True)
             raise
         finally:
             self._locatingAlt = False
@@ -184,7 +184,7 @@ class Node(object):
             else:
                 return a.open(mode)
         except Exception:
-            log.debug("opening alternative for %s failed", repr(self.name), exc_info=True)
+            log.debug("opening alternative for %s failed", self.name, exc_info=True)
             raise
 
     def walk(self, pref=''):
@@ -269,7 +269,7 @@ class RealFile(Node):
             assert 'r' not in mode
             return self.openAlternative(mode)
         except Exception:
-            log.info("opening file %s with mode %s", repr(self._realPath), repr(mode))
+            log.info("opening file %s with mode %s", self._realPath, repr(mode))
             return open(self._realPath, mode)
 
     def openRealFile(self):
@@ -277,7 +277,7 @@ class RealFile(Node):
             return self.openAlternative('r', True)
         except Exception:
             mode = 'rb'
-            log.info("opening file %s with mode %s", repr(self._realPath), repr(mode))
+            log.info("opening file %s with mode %s", self._realPath, repr(mode))
             return open(self._realPath, mode)
 
     def __getitem__(self, key):
@@ -289,7 +289,7 @@ class RealFile(Node):
 
         p = os.path.join(self._realPath, key)
         if not os.path.exists(p):
-            raise RuntimeError("%s: no such file or directory" % repr(p))
+            raise RuntimeError("%s: no such file or directory" % p)
 
         return RealFile(p, self)
 
@@ -367,10 +367,10 @@ class VirtualDirectory(Node, collections.MutableMapping):
         elif packpath.endswith(".pk3dir"):
             p = VirtualDirectory.fromFileSystem(packpath, loadPacks=False)
             self.merge(p)
-            log.info("added virtual pack %s", repr(packpath))
+            log.info("added virtual pack %s", packpath)
             return p, ""
         else:
-            raise RuntimeError("invalid pack name %s" % repr(packpath))
+            raise RuntimeError("invalid pack name %s" % packpath)
 
     def loadDataDirs(self, *paths):
         for path in paths:
@@ -415,7 +415,7 @@ class RootDirectory(VirtualDirectory):
         try:
             return super(RootDirectory, self).locate(vpath, *args, **kwargs)
         except Exception:
-            log.warning("object %s not found in the virtual filesystem%s", repr(vpath),
+            log.warning("object %s not found in the virtual filesystem%s", vpath,
                         ", interpreting as a real path" if tryLocal else "")
             log.debug("dumping traceback", exc_info=True)
 
@@ -425,10 +425,10 @@ class RootDirectory(VirtualDirectory):
                 assert os.access(vpath, os.R_OK)
                 return RealFile(vpath)
             except Exception:
-                log.warning("file %s doesn't exist in the real filesystem or isn't usable", repr(vpath))
+                log.warning("file %s doesn't exist in the real filesystem or isn't usable", vpath)
                 log.debug("dumping traceback", exc_info=True)
 
-        raise RuntimeError("object %s couldn't be located" % repr(vpath))
+        raise RuntimeError("object %s couldn't be located" % vpath)
 
 class ZipArchiveFile(Node):
     def __init__(self, base, name):
@@ -470,7 +470,7 @@ class ZipArchive(VirtualDirectory):
         try:
             self.zip = zipfile.ZipFile(self.zipPath)
         except Exception:
-            log.warning("loading pack %s failed", repr(self.zipPath))
+            log.warning("loading pack %s failed", self.zipPath)
             return
 
         filesAdded = 0
@@ -482,7 +482,7 @@ class ZipArchive(VirtualDirectory):
                 self.locate(vpath, True, ZipArchiveFile(self, name))
                 filesAdded += 1
 
-        log.info("added pack %s (%i files)", repr(self.zipPath), filesAdded)
+        log.info("added pack %s (%i files)", self.zipPath, filesAdded)
 
 class BasePack(object):
     def __init__(self, name, ifExists='error'):
@@ -492,13 +492,13 @@ class BasePack(object):
 
         if self.alreadyExists():
             if ifExists == 'error':
-                raise RuntimeError("pack %s already exists" % repr(self.path))
+                raise RuntimeError("pack %s already exists" % self.path)
             elif ifExists == 'remove':
-                log.warning("pack %s already exists, removing", repr(self.path))
+                log.warning("pack %s already exists, removing", self.path)
                 self.removeExisting()
                 assert not self.alreadyExists()
             else:
-                log.warning("pack %s already exists", repr(self.path))
+                log.warning("pack %s already exists", self.path)
                 self.exists = True
 
     def alreadyExists(self):
@@ -525,7 +525,7 @@ class Pack(BasePack):
         self.zip = zipfile.ZipFile(self.path, 'a' if self.exists else 'w', zipfile.ZIP_DEFLATED)
 
         if not self.exists:
-            log.info("created pack %s", repr(self.path))
+            log.info("created pack %s", self.path)
 
     def removeExisting(self):
         os.remove(self.path)
@@ -541,7 +541,7 @@ class Pack(BasePack):
 
     def save(self):
         self.zip.close()
-        log.info("saved pack %s", repr(self.path))
+        log.info("saved pack %s", self.path)
 
 class VirtualPack(BasePack):
     def __init__(self, name, ifExists='error'):
@@ -549,7 +549,7 @@ class VirtualPack(BasePack):
 
         if not self.exists:
             os.makedirs(self.path)
-            log.info("created virtual pack %s", repr(self.path))
+            log.info("created virtual pack %s", self.path)
 
     def removeExisting(self):
         shutil.rmtree(self.path)
@@ -569,7 +569,7 @@ class VirtualPack(BasePack):
 @atexit.register
 def cleanup():
     for tmp in tempfiles:
-        log.info("removing temporary file %s", repr(tmp.name))
+        log.info("removing temporary file %s", tmp.name)
         os.remove(tmp.name)
 
     del tempfiles[:]
