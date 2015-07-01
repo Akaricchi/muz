@@ -340,7 +340,7 @@ def nameFromPath(path):
 
         for location in importer.locations:
             if path.startswith(location + "/"):
-                return path[len(location) + 1 : -len(ext) - 1]
+                return path[len(location) + 1:]
 
     return None
 
