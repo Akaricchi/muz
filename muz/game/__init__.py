@@ -15,6 +15,7 @@ config = muz.config.get(__name__, {
     "aggressive-update"             :       False,
     "aggressive-update-step"        :       1,
     "interpolate-music-time"        :       True,
+    "randomize"                     :       False,
 
     "keymaps": {
         "global": {

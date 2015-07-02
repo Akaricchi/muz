@@ -155,6 +155,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('-p', '--perfect-run', dest='perfectrun', action='store_true', default=False,
                    help='automatically restart the game when anything less than Perfect is scored, implies --fc-run')
 
+    g.add_argument('-r', '--random', action='store_true', default=False,
+                   help='randomize note positions on the beatmap')
+
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
                    help='play automatically without user interaction, overrides the config option')
 

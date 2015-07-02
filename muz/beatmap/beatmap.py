@@ -1,7 +1,7 @@
 
 from __future__ import absolute_import
 
-import collections, os
+import collections, os, random
 from StringIO import StringIO
 
 import muz
@@ -207,6 +207,28 @@ class Beatmap(collections.MutableSequence):
                 self.name = "[%s] %s" % (m["Beatmap.Variant.ASCII"], self.name)
             elif m["Beatmap.Variant"]:
                 self.name = "[%s] %s" % (m["Beatmap.Variant"], self.name)
+
+    def randomize(self):
+        self.fix()
+
+        mindist = 1000
+        busy = [0 for band in xrange(self.numbands)]
+
+        prev = None
+        for note in self:
+            if prev is not None:
+                d = note.hitTime - prev.hitTime
+                if d and d < mindist:
+                    mindist = d
+            prev = note
+
+        print mindist
+
+        for note in self:
+            note.band = random.choice([i for i in xrange(self.numbands) if note.hitTime - busy[i] >= mindist])
+            busy[note.band] = note.hitTime + note.holdTime
+
+
 
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)

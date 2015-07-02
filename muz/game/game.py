@@ -12,8 +12,6 @@ import muz.game.scoreinfo
 from muz.util import clamp
 from muz.game import config, log
 
-import random
-
 class Stats(object):
     def __init__(self):
         self.comboScoreFactor = 0.005
@@ -186,6 +184,9 @@ class Game(object):
     def start(self, refreshBeatmap=True):
         if refreshBeatmap:
             self.beatmap = self.originalBeatmap.clone()
+
+            if config["randomize"] or muz.main.globalArgs.random:
+                self.beatmap.randomize()
 
         pygame.mixer.music.play(0, self.timeOffset / 1000.0)
 
