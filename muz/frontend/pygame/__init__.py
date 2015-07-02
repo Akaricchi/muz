@@ -91,6 +91,7 @@ class Frontend(muz.frontend.Frontend):
         self.videoFlags = pygame.DOUBLEBUF | pygame.HWSURFACE
         self.activity = None
         self.screen = None
+        self.gameRendererClass = muz.frontend.pygame.gamerenderer.GameRenderer
 
     def makeDefaultConfig(self):
         return muz.config.get(__name__, {
@@ -306,7 +307,7 @@ class Frontend(muz.frontend.Frontend):
                 self.command(self.keymap[event.key], True)
 
     def gameLoop(self, activity):
-        renderer = muz.frontend.pygame.gamerenderer.GameRenderer(activity)
+        renderer = self.gameRendererClass(activity)
         self.activity = activity
         activity.renderer = renderer
         clock = Clock(self.config["video"]["target-fps"])
