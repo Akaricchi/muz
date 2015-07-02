@@ -188,6 +188,9 @@ class Game(object):
             if config["no-holds"] or muz.main.globalArgs.no_holds:
                 self.beatmap.stripHolds()
 
+            if config["insane"] or muz.main.globalArgs.insane:
+                self.beatmap.insanify()
+
             if config["randomize"] or muz.main.globalArgs.random:
                 self.beatmap.randomize()
 

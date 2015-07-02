@@ -161,6 +161,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('--no-holds', action='store_true', default=False,
                    help='replace each hold note with two hit notes')
 
+    g.add_argument('-i', '--insane', action='store_true', default=False,
+                   help='add lots of extra notes')
+
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
                    help='play automatically without user interaction, overrides the config option')
 

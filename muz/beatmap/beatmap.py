@@ -208,25 +208,55 @@ class Beatmap(collections.MutableSequence):
             elif m["Beatmap.Variant"]:
                 self.name = "[%s] %s" % (m["Beatmap.Variant"], self.name)
 
-    def randomize(self):
-        self.fix()
-
-        mindist = 1000
-        busy = [0 for band in xrange(self.numbands)]
+    @property
+    def minimalNoteDistance(self):
+        mindist = 0
 
         prev = None
         for note in self:
             if prev is not None:
                 d = note.hitTime - prev.hitTime
-                if d > 20 and d < mindist:
+                if not mindist or (d > 20 and d < mindist):
                     mindist = d
             prev = note
 
-        print mindist
+        return mindist
+
+
+    def randomize(self):
+        self.fix()
+
+        mindist = self.minimalNoteDistance
+        busy = [0 for band in xrange(self.numbands)]
 
         for note in self:
             note.band = random.choice([i for i in xrange(self.numbands) if note.hitTime - busy[i] >= 0])
             busy[note.band] = note.hitTime + note.holdTime + mindist
+
+    def insanify(self):
+        self.fix()
+
+        mindist = self.minimalNoteDistance
+        busy = [0 for band in xrange(self.numbands)]
+
+        prev = None
+        for note in tuple(self):
+            for i in range(1):
+                if prev is not None and note.hitTime - (prev.hitTime + prev.holdTime * i) >= mindist * 2:
+                    h = prev.hitTime + prev.holdTime * i + (note.hitTime - (prev.hitTime + prev.holdTime * i)) / 2
+                    try:
+                        b = random.choice([i for i in xrange(self.numbands) if h - busy[i] >= 0])
+                    except IndexError:
+                        pass
+                    else:
+                        n = Note(b, h, 0)
+                        self.append(n)
+                        busy[b] = n.hitTime + mindist
+
+            busy[note.band] = note.hitTime + note.holdTime + mindist * 2
+            prev = note
+
+        self.fix()
 
     def stripHolds(self):
         for note in tuple(self):
