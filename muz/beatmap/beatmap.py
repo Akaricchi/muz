@@ -218,17 +218,24 @@ class Beatmap(collections.MutableSequence):
         for note in self:
             if prev is not None:
                 d = note.hitTime - prev.hitTime
-                if d and d < mindist:
+                if d > 20 and d < mindist:
                     mindist = d
             prev = note
 
         print mindist
 
         for note in self:
-            note.band = random.choice([i for i in xrange(self.numbands) if note.hitTime - busy[i] >= mindist])
-            busy[note.band] = note.hitTime + note.holdTime
+            note.band = random.choice([i for i in xrange(self.numbands) if note.hitTime - busy[i] >= 0])
+            busy[note.band] = note.hitTime + note.holdTime + mindist
 
+    def stripHolds(self):
+        for note in tuple(self):
+            if note.holdTime:
+                t = note.hitTime + note.holdTime
+                note.holdTime = 0
+                self.append(Note(note.band, t, 0))
 
+        self.fix()
 
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)

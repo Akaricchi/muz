@@ -185,6 +185,9 @@ class Game(object):
         if refreshBeatmap:
             self.beatmap = self.originalBeatmap.clone()
 
+            if config["no-holds"] or muz.main.globalArgs.no_holds:
+                self.beatmap.stripHolds()
+
             if config["randomize"] or muz.main.globalArgs.random:
                 self.beatmap.randomize()
 
