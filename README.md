@@ -45,6 +45,26 @@ On decent operating systems, you can filter the output with ```grep``` to find a
 
     muz -l | grep -i "binetsu"
 
+To play a beatmap with note positions randomized:
+
+    muz --random "beatamp"
+
+Replace all holds with two simple notes:
+
+    muz --no-holds "beatmap"
+    
+Play in "insane" mode, where extra notes are added to the beatmap:
+
+    muz --insane "beatmap"
+
+Let the computer play by itself perfectly and enjoy the show:
+
+    muz --autoplay "beatmap"
+    
+You can, of course, combine any of those options:
+
+    muz --autoplay --random --insane "beatmap"
+
 # Beatmaps
 μz comes with no beatmaps by default, you'll have to obtain them yourself. Once obtained, they have to be placed in the **μz user directory**: ```~/.muz/```, or  ```C:\Users\yourname\.muz\``` on Windows. If this directory doesn't exist, create it.
 
