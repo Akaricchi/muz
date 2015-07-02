@@ -12,7 +12,6 @@ exportersByName = {}
 def register(module, name):
     if hasattr(module, "read"):
         importersByExt.update({e: module for e in module.extensions})
-        importersByExt[name] = module
 
     if hasattr(module, "write"):
         exportersByExt.update({e: module for e in module.extensions})
