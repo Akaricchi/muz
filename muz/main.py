@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import os, sys, logging, argparse
 
 import muz
+import muz.frontend
 import muz.vfs as vfs
 import muz.beatmap as beatmap
 import muz.game as game
@@ -71,6 +72,9 @@ def handleGeneralArgs(parser, argv, namespace):
     g.add_argument('--log-level', dest="loglevel", metavar="LEVEL", choices=["critical", "error", "warning", "info", "debug"], default=None,
                    help="set the output verbosity level, overrides the config setting (default: warning)")
 
+    g.add_argument('--frontend', choices=tuple(muz.frontend.iter()), default="pygame",
+                   help="set the subsystem used to render and display the game, handle input, play audio, etc. (default: %(default)s)")
+
     g.add_argument('-v', '--version', action="version", version="%s %s" % (NAME, VERSION),
                    help="print the game version and exit")
 
@@ -131,7 +135,7 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
                    help='add lots of extra notes')
 
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
-                   help='play automatically without user interaction, overrides the config option')
+                   help='play automatically without user interaction (overrides the config setting)')
 
     if beatmapOption and len(argv) < 1:
         parser.print_help()
@@ -186,11 +190,11 @@ def playBeatmap(bmap):
     finally:
         frontend.shutdown()
 
-def init(frontendClass=None, requireLogLevel=logging.CRITICAL):
+def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
     global frontend
 
-    if frontendClass is not None:
-        frontend = frontendClass()
+    if requireFrontend:
+        frontend = muz.frontend.get(globalArgs.frontend)
     else:
         frontend = None
 
@@ -203,13 +207,13 @@ def init(frontendClass=None, requireLogLevel=logging.CRITICAL):
     if frontend is not None:
         frontend.postInit()
 
-def bareInit():
+def bareInit(requireFrontend=False):
     p = initArgParser()
     n = None
     argv = []
     n, argv = handleGeneralArgs(p, argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
-    init()
+    init(requireFrontend=requireFrontend)
 
 @muz.util.entrypoint
 def run(*argv):
@@ -221,8 +225,7 @@ def run(*argv):
     n, argv = handleGameArgs(p, argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
 
-    import muz.frontend.pygame
-    init(frontendClass=muz.frontend.pygame.Frontend)
+    init(requireFrontend=True)
     playBeatmap(beatmap.load(n.beatmap[0]))
 
 if __name__ == "__main__":

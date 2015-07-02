@@ -1,5 +1,16 @@
 
+import importlib, pkgutil
 from abc import *
+
+def get(name):
+    return importlib.import_module(__name__ + "." + name).Frontend()
+
+def iter():
+    prefix = __name__ + "."
+    for importer, modname, ispkg in pkgutil.iter_modules(__path__, prefix):
+        modname = modname[len(prefix):]
+        if "." not in modname:
+            yield modname
 
 class Sound(object):
     __metaclass__ = ABCMeta
