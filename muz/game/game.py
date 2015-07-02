@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 import collections
-import pygame
 
 import muz
 import muz.main
@@ -47,7 +46,8 @@ class Band(object):
         self.num = num
 
 class Game(object):
-    def __init__(self, beatmap, renderercls):
+    def __init__(self, beatmap, frontend):
+        self.frontend = frontend
         self.beatmap = beatmap
         self.originalBeatmap = beatmap
         self.clock = None
@@ -55,23 +55,22 @@ class Game(object):
         self.oldTime = self.time
         self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
         self.removeNotes = []
+
         self.defaultNoterate = config["noterate"]
         self.maxNoterate = config["max-noterate"]
         self.noteratePerCombo = config["noterate-per-combo"]
         self.noterateGain = config["noterate-gain-speed"]
         self.noterate = self.defaultNoterate
 
-        self.hitSound = muz.assets.sound("hit")
-        self.releaseSound = muz.assets.sound("release")
-        self.holdSound = muz.assets.sound("hold") if config["use-hold-sound"] else self.releaseSound
+        self.hitSound = frontend.loadSound(muz.assets.sound("hit"))
+        self.releaseSound = frontend.loadSound(muz.assets.sound("release"))
 
-        audioCfg = muz.main.config["audio"]
-        self.hitSound.set_volume(audioCfg["sound-effect-volume"])
-        self.holdSound.set_volume(audioCfg["sound-effect-volume"])
-        self.releaseSound.set_volume(audioCfg["sound-effect-volume"])
+        if config["use-hold-sound"]:
+            self.holdSound = frontend.loadSound(muz.assets.sound("hold"))
+        else:
+            self.holdSound = self.releaseSound
 
-        pygame.mixer.music.load(beatmap.musicVfsNode.realPath)
-        pygame.mixer.music.set_volume(audioCfg["music-volume"])
+        self.music = frontend.loadMusic(beatmap.musicVfsNode)
 
         self.soundplayed = {}
         for s in (self.hitSound, self.holdSound, self.releaseSound):
@@ -95,10 +94,9 @@ class Game(object):
         self.paused = True
         self.finished = False
 
-        self.renderer = renderercls(self)
-
-        muz.title(beatmap.name)
-        self.initKeymap()
+        frontend.title = beatmap.name
+        self.initCommands()
+        frontend.initKeymap(submap="bandnum=%i" % beatmap.numbands)
 
         self._time = 0
         self.stats = Stats()
@@ -106,23 +104,13 @@ class Game(object):
         if not config["start-paused"]:
             self.start()
 
-    def initKeymap(self):
-        # pygame wtf, why is this not provided by default?
-        keyLookupTable = {pygame.key.name(v).lower(): v for k, v in pygame.constants.__dict__.items() if k.startswith("K_")}
-
+    def initCommands(self):
         nullfunc = lambda *a: None
-        lower = lambda d: {k.lower(): v.lower() for k, v in d.items()}
-
-        self.keymap = collections.defaultdict(lambda: nullfunc)
-        keymap = lower(config["keymaps"]["global"])
-
-        try:
-            keymap.update(lower(config["keymaps"]["bandnum-specific"][str(self.beatmap.numbands)]))
-        except KeyError:
-            log.warning("no keymap configuration for %i bands", self.beatmap.numbands)
 
         def bandpress(band):
-            if band in range(len(self.bands)):
+            if self.paused:
+                self.resume()
+            elif band in range(len(self.bands)):
                 self.registerHit(self.bands[band])
 
         def bandrelease(band):
@@ -130,36 +118,28 @@ class Game(object):
                 self.registerRelease(self.bands[band])
 
         # "action" : (numargs, press, release)
-        funcs = {
+        self.commands = {
             "toggle-autoplay"   : (0, self.toggleAutoplay, nullfunc),
             "toggle-pause"      : (0, self.togglePause,    nullfunc),
-            "quit"              : (0, lambda: exit(0),     nullfunc),
             "band"              : (1, bandpress,           bandrelease),
             "seek"              : (1, self.seek,           nullfunc),
         }
 
-        for key, action in keymap.items():
-            try:
-                sdlkey = keyLookupTable[key]
-            except KeyError:
-                #log.warning("unknown key %s in keymap", repr(key))
-                continue
+    def command(self, cmd, isRelease):
+        cmd = cmd.split(":")
+        action, args = cmd[0], tuple(int(a) for a in cmd[1:])
 
-            cmd = action.split(":")
-            action, args = cmd[0], tuple(int(a) for a in cmd[1:])
+        if action not in self.commands:
+            log.warning("unknown action %s", repr(action))
+            return
 
-            if not action:
-                continue
+        a = self.commands[action]
 
-            if action not in funcs:
-                log.warning("unknown action %s for key %s", repr(action), repr(key))
-                continue
+        if len(args) < a[0]:
+            log.warning("action %s requires at least %i arguments", repr(action), a[0])
+            return
 
-            if len(args) < funcs[action][0]:
-                log.warning("action %s requires at least %i arguments", repr(action), funcs[action][0])
-                continue
-
-            self.keymap[sdlkey] = lambda isRelease, f=funcs[action], a=args: f[1+int(isRelease)](*a)
+        a[1+int(isRelease)](*args)
 
     def isStarted(self):
         return self.time >= 0
@@ -194,7 +174,7 @@ class Game(object):
             if config["randomize"] or muz.main.globalArgs.random:
                 self.beatmap.randomize()
 
-        pygame.mixer.music.play(0, self.timeOffset / 1000.0)
+        self.music.play(self.timeOffset)
 
         self.time = self.timeOffset
         self.oldTime = self.time
@@ -211,22 +191,21 @@ class Game(object):
             self.start()
             return
 
-        pygame.mixer.music.unpause()
-
+        self.music.paused = False
         self.paused = False
 
     def pause(self):
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.pause()
+        if self.music.playing:
+            self.music.paused = True
             self.paused = True
 
     def stop(self):
         self.timeOffset = self.time
-        pygame.mixer.music.stop()
+        self.music.stop()
         self.paused = True
 
     def seek(self, offs):
-        if not offs or self.paused or not pygame.mixer.music.get_busy():
+        if not offs or self.paused or not self.music.playing:
             return
 
         self.stop()
@@ -335,7 +314,7 @@ class Game(object):
                 self.registerMiss(note, abs(d))
 
         _time = self.time
-        mtime = pygame.mixer.music.get_pos()
+        mtime = self.music.position
 
         if mtime >= 0:
             mtime += self.timeOffset
@@ -391,7 +370,7 @@ class Game(object):
             self.justStarted = False
 
     def update(self):
-        dt = self.clock.get_time()
+        dt = self.clock.deltaTime
         if self.aggressiveUpdate:
             while dt > 0:
                 s = clamp(0, self.aggressiveUpdateStep, dt)
@@ -399,17 +378,3 @@ class Game(object):
                 self._update(s)
         else:
             self._update(dt)
-
-    def draw(self, screen):
-        self.renderer.draw(screen)
-
-    def event(self, event):
-        log.debug("%s", event)
-
-        if event.type == pygame.KEYDOWN:
-            log.debug("keydown: %s", pygame.key.name(event.key))
-            if self.paused and event.key == pygame.K_SPACE:
-                self.resume()
-            self.keymap[event.key](False)
-        elif event.type == pygame.KEYUP:
-            self.keymap[event.key](True)

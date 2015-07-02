@@ -7,8 +7,9 @@ import muz
 import muz.config
 
 config = muz.config.get(__name__, {
-    "load-packs"    : True,
-    "try-local"     : True
+    "load-packs"        : True,
+    "try-local"         : True,
+    "auto-convert-mp3"  : False,
 })
 
 VPATH_SELF = '.'
@@ -153,7 +154,7 @@ class Node(object):
             try:
                 return self.parent.locate(oggname)
             except Exception:
-                if not muz._config["audio"]["auto-convert"]:
+                if not config["auto-convert-mp3"]:
                     raise
 
                 log.info("loading an ogg alternative failed, will try to convert...")

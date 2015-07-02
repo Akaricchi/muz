@@ -62,7 +62,7 @@ def main(mapfunc, defaultPos=0, defaultLoopLimit=0, defaultFormat='pack'):
     n, argv = handleExportArgs(p, argv, n, mapfunc)
     n, argv = muz.main.handleRemainingArgs(p, argv, n)
 
-    muz.main.init()
+    muz.main.init(requireFrontend=True)
     bmap = mapfunc()[0]
     bmap.applyMeta()
     muz.main.playBeatmap(bmap)

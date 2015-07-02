@@ -20,21 +20,9 @@ _config = muz.config.get(__name__, {
     "log": {
         "level": "warning",
     },
-
-    # TODO: separate module?
-    "audio": {
-        "frequency": 44100,
-        "buffer": 1024,
-        "size": -16,
-        "channels": 2,
-        "driver": "default",
-        "sound-effect-volume": 0.5,
-        "music-volume": 0.5,
-        "auto-convert": False,
-    }
 })
 
 import muz.util
 configureLogger(log)
 
-from muz.main import initvfs, title, run, userdir, NAME, VERSION, init, bareInit
+from muz.main import initvfs, run, userdir, NAME, VERSION, init, bareInit

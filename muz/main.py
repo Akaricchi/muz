@@ -5,17 +5,14 @@ from __future__ import absolute_import
 
 import os, sys, logging, argparse
 
-import pygame
-
 import muz
+import muz.frontend
 import muz.vfs as vfs
 import muz.beatmap as beatmap
 import muz.game as game
-import muz.video
 import muz.util
 
 from muz import _config as config
-from muz.video.pygame import GameRenderer
 
 NAME = u"μz"
 VERSION = "0.01-prepreprealpha"
@@ -23,6 +20,7 @@ VERSION = "0.01-prepreprealpha"
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 userdir = os.path.abspath(os.path.join(os.path.expanduser("~"), ".muz"))
 globalArgs = None
+frontend = None
 log = logging.getLogger(__name__)
 
 def initUserDir():
@@ -35,37 +33,6 @@ def initvfs():
 
     for pack in globalArgs.extrapacks:
         vfs.root.loadPack(pack)
-
-def title(title):
-    if title:
-        pygame.display.set_caption(("%s - %s" % (NAME, title)).encode('utf-8'))
-    else:
-        pygame.display.set_caption(NAME.encode('utf-8'))
-
-def initPygame():
-    a = config["audio"]
-    v = config["video"]
-
-    if a["driver"] != "default":
-        os.environ["SDL_AUDIODRIVER"] = a["driver"]
-
-    pygame.mixer.pre_init(
-        frequency=a["frequency"],
-        size=a["size"],
-        channels=a["channels"],
-        buffer=a["buffer"]
-    )
-
-    pygame.init()
-
-    flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-    if v["fullscreen"]:
-        flags |= pygame.FULLSCREEN
-
-    screen = pygame.display.set_mode((v["window-width"], v["window-height"]), flags)
-    title(None)
-
-    return screen
 
 def initArgParser(desc=None, prog=None):
     if desc is None:
@@ -104,6 +71,9 @@ def handleGeneralArgs(parser, argv, namespace):
 
     g.add_argument('--log-level', dest="loglevel", metavar="LEVEL", choices=["critical", "error", "warning", "info", "debug"], default=None,
                    help="set the output verbosity level, overrides the config setting (default: warning)")
+
+    g.add_argument('--frontend', choices=tuple(muz.frontend.iter()), default="pygame",
+                   help="set the subsystem used to render and display the game, handle input, play audio, etc. (default: %(default)s)")
 
     g.add_argument('-v', '--version', action="version", version="%s %s" % (NAME, VERSION),
                    help="print the game version and exit")
@@ -165,7 +135,7 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
                    help='add lots of extra notes')
 
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
-                   help='play automatically without user interaction, overrides the config option')
+                   help='play automatically without user interaction (overrides the config setting)')
 
     if beatmapOption and len(argv) < 1:
         parser.print_help()
@@ -187,33 +157,6 @@ def handleRemainingArgs(parser, argv, namespace):
         exit(1)
 
     return (namespace, argv)
-
-def loop(screen, activity):
-    try:
-        clock = pygame.time.Clock()
-        activity.clock = clock
-        fpstarg = config["video"]["target-fps"]
-
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return
-                activity.event(event)
-
-            activity.update()
-            activity.draw(screen)
-
-            pygame.display.flip()
-            clock.tick(fpstarg)
-
-    finally:
-        log.info("shutting down")
-        pygame.quit()
-
-def playBeatmap(bmap, startFrom=0, loopLimit=0):
-    screen = initPygame()
-    activity = game.Game(bmap, GameRenderer)
-    loop(screen, activity)
 
 def loadConfig(requireLogLevel=logging.CRITICAL):
     if globalArgs.config is not None:
@@ -241,20 +184,36 @@ def loadConfig(requireLogLevel=logging.CRITICAL):
     if globalArgs.loglevel is None:
         muz.log.setLevel(min(requireLogLevel, muz.util.logLevelByName(muz._config["log"]["level"])))
 
-def init(requireLogLevel=logging.CRITICAL):
+def playBeatmap(bmap):
+    try:
+        frontend.gameLoop(game.Game(bmap, frontend))
+    finally:
+        frontend.shutdown()
+
+def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
+    global frontend
+
+    if requireFrontend:
+        frontend = muz.frontend.get(globalArgs.frontend)
+    else:
+        frontend = None
+
     reload(sys)
     sys.setdefaultencoding("utf-8")
     initUserDir()
     loadConfig(requireLogLevel=requireLogLevel)
     initvfs()
 
-def bareInit():
+    if frontend is not None:
+        frontend.postInit()
+
+def bareInit(requireFrontend=False):
     p = initArgParser()
     n = None
     argv = []
     n, argv = handleGeneralArgs(p, argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
-    init()
+    init(requireFrontend=requireFrontend)
 
 @muz.util.entrypoint
 def run(*argv):
@@ -266,7 +225,7 @@ def run(*argv):
     n, argv = handleGameArgs(p, argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
 
-    init()
+    init(requireFrontend=True)
     playBeatmap(beatmap.load(n.beatmap[0]))
 
 if __name__ == "__main__":
