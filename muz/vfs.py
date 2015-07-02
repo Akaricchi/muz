@@ -57,7 +57,6 @@ class Node(object):
         self._temp = None
         self.realPathExists = False
         self.isDir = False
-        self._locatingAlt = False
         super(Node, self).__init__(*args, **kwargs)
 
     # Can't I do it better somehow?
@@ -146,46 +145,30 @@ class Node(object):
         return tmp
 
     def locateAlternative(self):
-        if self._locatingAlt:
-            raise VFSError("attempted to locate an alternative recursively")
-
-        self._locatingAlt = True
         ext = self.name.split('.')[-1]
 
+        if ext == "mp3":
+            # mp3 sucks... let's see if we can load an ogg instead
+            oggname = self.name[:-3] + "ogg"
+            try:
+                return self.parent.locate(oggname)
+            except Exception:
+                if not muz._config["audio"]["auto-convert"]:
+                    raise
+
+                log.info("loading an ogg alternative failed, will try to convert...")
+                log.debug("dumping traceback", exc_info=True)
+                muz.util.convertMp3(self)
+                return self.parent.locate(oggname)
+
+        raise NoAlternativeError
+
+    def preferAlternative(self):
         try:
-            if ext == "mp3":
-                # mp3 sucks... let's see if we can load an ogg instead
-                oggname = self.name[:-3] + "ogg"
-                try:
-                    return self.parent.locate(oggname)
-                except Exception:
-                    if not muz._config["audio"]["auto-convert"]:
-                        raise
-
-                    log.info("loading an ogg alternative failed, will try to convert...")
-                    log.debug("dumping traceback", exc_info=True)
-                    muz.util.convertMp3(self)
-                    return self.parent.locate(oggname)
-
-            raise NoAlternativeError
+            return self.locateAlternative()
         except Exception:
             log.debug("alternative for %s doesn't exist", self.name, exc_info=True)
-            raise
-        finally:
-            self._locatingAlt = False
-
-
-    def openAlternative(self, mode, forceReal=False):
-        a = self.locateAlternative()
-
-        try:
-            if forceReal:
-                return a.openRealFile()
-            else:
-                return a.open(mode)
-        except Exception:
-            log.debug("opening alternative for %s failed", self.name, exc_info=True)
-            raise
+            return self
 
     def walk(self, pref=''):
         for key, val in self.items():
@@ -259,26 +242,16 @@ class RealFile(Node):
 
     @property
     def realPath(self):
-        try:
-            return self.locateAlternative().realPath
-        except Exception:
-            return self._realPath
+        return self._realPath
 
     def open(self, mode='rb'):
-        try:
-            assert 'r' not in mode
-            return self.openAlternative(mode)
-        except Exception:
-            log.info("opening file %s with mode %s", self._realPath, repr(mode))
-            return open(self._realPath, mode)
+        log.info("opening file %s with mode %s", self._realPath, repr(mode))
+        return open(self._realPath, mode)
 
     def openRealFile(self):
-        try:
-            return self.openAlternative('r', True)
-        except Exception:
-            mode = 'rb'
-            log.info("opening file %s with mode %s", self._realPath, repr(mode))
-            return open(self._realPath, mode)
+        mode = 'rb'
+        log.info("opening file %s with mode %s", self._realPath, repr(mode))
+        return open(self._realPath, mode)
 
     def __getitem__(self, key):
         if key == VPATH_SELF:
@@ -439,23 +412,14 @@ class ZipArchiveFile(Node):
         self.zipPath = base.zipPath
 
     def open(self, mode='r'):
-        try:
-            return self.openAlternative(mode)
-        except Exception:
-            return self.zip.open(self.name, mode)
+        return self.zip.open(self.name, mode)
 
     def openRealFile(self):
-        try:
-            return self.openAlternative('r', True)
-        except Exception:
-            return self.tempFile()
+        return self.tempFile()
 
     @property
     def realPath(self):
-        try:
-            return self.locateAlternative().realPath
-        except Exception:
-            return super(ZipArchiveFile, self).realPath
+        return super(ZipArchiveFile, self).realPath
 
     def __repr__(self):
         return "ZipArchiveFile(%s, %s)" % (repr(self.zipPath), repr(self.name))
