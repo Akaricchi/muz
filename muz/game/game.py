@@ -276,8 +276,9 @@ class Game(object):
 
         if band.heldNote:
             self.registerScore(self.time - band.heldNote.hitTime - band.heldNote.holdTime)
-            self.removeNote(band.heldNote)
+            n = band.heldNote
             band.heldNote = None
+            self.removeNote(n)
             self.playSound(self.releaseSound)
 
     def registerMiss(self, note, delta):
