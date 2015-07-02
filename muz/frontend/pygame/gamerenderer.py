@@ -10,9 +10,7 @@ import muz.game.scoreinfo as scoreinfo
 from muz.util import mix, clamp, approach
 
 config = muz.config.get(__name__, {
-    "antialias-text"    : True,
     "show-timing-hints" : False,
-    "render-text"       : True,
     "show-nearest-note" : False,
     "overlay-alpha"     : 0.66,
 
@@ -77,39 +75,22 @@ class GameRenderer(object):
         self.drawnBestCombo = -1
         self.resultsFadeIn = 0.0
 
-        self.bigFont    = muz.assets.font(*config["fonts"]["big"])
-        self.mediumFont = muz.assets.font(*config["fonts"]["medium"])
-        self.smallFont  = muz.assets.font(*config["fonts"]["small"])
-        self.tinyFont   = muz.assets.font(*config["fonts"]["tiny"])
+        self.frontend = game.frontend
+
+        self.bigFont    = self.frontend.loadFont(*config["fonts"]["big"])
+        self.mediumFont = self.frontend.loadFont(*config["fonts"]["medium"])
+        self.smallFont  = self.frontend.loadFont(*config["fonts"]["small"])
+        self.tinyFont   = self.frontend.loadFont(*config["fonts"]["tiny"])
 
         self.overlayAlpha = config["overlay-alpha"] * 255
-        self.antialias = config["antialias-text"]
-
-        if not config["render-text"]:
-            self.renderText = self.renderTextDummy
 
         self.dummySurf = None
 
     def displayScoreInfo(self, s):
         self.drawHits.append((self.time, s))
 
-    def renderTextDummy(self, text, font, color, direct=False):
-        if not self.dummySurf:
-            self.dummySurf = pygame.Surface((1, 1))
-        return self.dummySurf
-
-    def renderText(self, text, font, color, direct=False):
-        txt = font.render(text, self.antialias, color)
-
-        if direct:
-            return txt
-
-        s = pygame.Surface(txt.get_size())
-        ckey = (0, 0, 0)
-        s.fill(ckey)
-        s.blit(txt, (0, 0, 0, 0))
-        s.set_colorkey(ckey)
-        return s
+    def renderText(self, *args, **kwargs):
+        return self.frontend.renderText(*args, **kwargs)
 
     def bandPressed(self, band):
         self.bands[band].held = True
@@ -201,7 +182,7 @@ class GameRenderer(object):
         stats = game.stats
         colors = config["colors"]
         txtcolors = colors["text"]
-        dt = game.clock.get_time()
+        dt = game.clock.deltaTime
 
         if game.finished:
             self.resultsFadeIn = approach(self.resultsFadeIn, 1.0, dt / 1250.0)
@@ -210,7 +191,7 @@ class GameRenderer(object):
             uiAlpha = 255
 
         if self.time > self.updateFpsTime:
-            self.fpsSurf = self.renderText("%i FPS" % game.clock.get_fps(), self.smallFont, txtcolors["fps"], direct=True)
+            self.fpsSurf = self.renderText("%i FPS" % game.clock.fps, self.smallFont, txtcolors["fps"], direct=True)
             self.updateFpsTime = self.time + 500
 
         screen.fill(colors["background"])

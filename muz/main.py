@@ -5,17 +5,13 @@ from __future__ import absolute_import
 
 import os, sys, logging, argparse
 
-import pygame
-
 import muz
 import muz.vfs as vfs
 import muz.beatmap as beatmap
 import muz.game as game
-import muz.video
 import muz.util
 
 from muz import _config as config
-from muz.video.pygame import GameRenderer
 
 NAME = u"μz"
 VERSION = "0.01-prepreprealpha"
@@ -23,6 +19,7 @@ VERSION = "0.01-prepreprealpha"
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 userdir = os.path.abspath(os.path.join(os.path.expanduser("~"), ".muz"))
 globalArgs = None
+frontend = None
 log = logging.getLogger(__name__)
 
 def initUserDir():
@@ -35,37 +32,6 @@ def initvfs():
 
     for pack in globalArgs.extrapacks:
         vfs.root.loadPack(pack)
-
-def title(title):
-    if title:
-        pygame.display.set_caption(("%s - %s" % (NAME, title)).encode('utf-8'))
-    else:
-        pygame.display.set_caption(NAME.encode('utf-8'))
-
-def initPygame():
-    a = config["audio"]
-    v = config["video"]
-
-    if a["driver"] != "default":
-        os.environ["SDL_AUDIODRIVER"] = a["driver"]
-
-    pygame.mixer.pre_init(
-        frequency=a["frequency"],
-        size=a["size"],
-        channels=a["channels"],
-        buffer=a["buffer"]
-    )
-
-    pygame.init()
-
-    flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-    if v["fullscreen"]:
-        flags |= pygame.FULLSCREEN
-
-    screen = pygame.display.set_mode((v["window-width"], v["window-height"]), flags)
-    title(None)
-
-    return screen
 
 def initArgParser(desc=None, prog=None):
     if desc is None:
@@ -188,33 +154,6 @@ def handleRemainingArgs(parser, argv, namespace):
 
     return (namespace, argv)
 
-def loop(screen, activity):
-    try:
-        clock = pygame.time.Clock()
-        activity.clock = clock
-        fpstarg = config["video"]["target-fps"]
-
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return
-                activity.event(event)
-
-            activity.update()
-            activity.draw(screen)
-
-            pygame.display.flip()
-            clock.tick(fpstarg)
-
-    finally:
-        log.info("shutting down")
-        pygame.quit()
-
-def playBeatmap(bmap, startFrom=0, loopLimit=0):
-    screen = initPygame()
-    activity = game.Game(bmap, GameRenderer)
-    loop(screen, activity)
-
 def loadConfig(requireLogLevel=logging.CRITICAL):
     if globalArgs.config is not None:
         cfg = globalArgs.config
@@ -241,12 +180,28 @@ def loadConfig(requireLogLevel=logging.CRITICAL):
     if globalArgs.loglevel is None:
         muz.log.setLevel(min(requireLogLevel, muz.util.logLevelByName(muz._config["log"]["level"])))
 
-def init(requireLogLevel=logging.CRITICAL):
+def playBeatmap(bmap):
+    try:
+        frontend.gameLoop(game.Game(bmap, frontend))
+    finally:
+        frontend.shutdown()
+
+def init(frontendClass=None, requireLogLevel=logging.CRITICAL):
+    global frontend
+
+    if frontendClass is not None:
+        frontend = frontendClass()
+    else:
+        frontend = None
+
     reload(sys)
     sys.setdefaultencoding("utf-8")
     initUserDir()
     loadConfig(requireLogLevel=requireLogLevel)
     initvfs()
+
+    if frontend is not None:
+        frontend.postInit()
 
 def bareInit():
     p = initArgParser()
@@ -266,7 +221,8 @@ def run(*argv):
     n, argv = handleGameArgs(p, argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
 
-    init()
+    import muz.frontend.pygame
+    init(frontendClass=muz.frontend.pygame.Frontend)
     playBeatmap(beatmap.load(n.beatmap[0]))
 
 if __name__ == "__main__":
