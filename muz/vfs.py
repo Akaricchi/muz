@@ -175,7 +175,7 @@ class Node(object):
         for key, val in self.items():
             if key not in VPATH_SPECIAL:
                 try:
-                    for d, f, v in val.walk(key + VPATH_SEP):
+                    for d, f, v in val.walk(pref + key + VPATH_SEP):
                         yield d, f, v
                 except Exception:
                     yield pref, key, val
@@ -496,7 +496,7 @@ class Pack(BasePack):
         os.remove(self.path)
 
     def getPath(self):
-        return os.path.join(muz.userdir, self.name + ".pk3")
+        return os.path.join(muz.main.userdir, self.name + ".pk3")
 
     def addFile(self, name, fobj):
         name = self.getFilePrefix() + name
@@ -520,7 +520,7 @@ class VirtualPack(BasePack):
         shutil.rmtree(self.path)
 
     def getPath(self):
-        return os.path.join(muz.userdir, self.name + ".pk3dir")
+        return os.path.join(muz.main.userdir, self.name + ".pk3dir")
 
     def addFile(self, name, fobj):
         path = os.path.abspath(os.path.join(self.path, name))

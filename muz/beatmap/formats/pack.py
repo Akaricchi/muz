@@ -16,7 +16,7 @@ locations = ["."]
 class PackError(Exception):
     pass
 
-def read(fobj):
+def read(fobj, filename):
     p, pref = muz.vfs.root.loadPack(fobj.name)
     bmap = None
 

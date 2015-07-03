@@ -5,6 +5,7 @@ import collections, os, random
 from StringIO import StringIO
 
 import muz
+import muz.assets
 import muz.vfs as vfs
 
 from muz.beatmap import log, formats
@@ -105,7 +106,7 @@ class Beatmap(collections.MutableSequence):
             root = self.vfsNode.parent
 
         try:
-            return root.locate(self.music).preferAlternative()
+            return muz.assets.music(self.music, root=root)
         except Exception:
             log.debug("musicVfsNode: locate failed", exc_info=True)
 
@@ -381,7 +382,7 @@ def load(name):
     if node is None:
         raise RuntimeError("No importer available for beatmap %s" % name)
 
-    bm = importer.read(node.open())
+    bm = importer.read(node.open(), node.name)
     if bm.vfsNode is None:
         bm.vfsNode = node
 
@@ -407,7 +408,6 @@ def export(*bmaps, **kwargs):
     format = formats.muz
     packtype = vfs.VirtualPack
     ifexists = 'remove'
-    prefix = "beatmaps/"
 
     if "format" in kwargs:
         format = kwargs["format"]
@@ -417,9 +417,6 @@ def export(*bmaps, **kwargs):
 
     if "ifExists" in kwargs:
         ifexists = kwargs["ifExists"]
-
-    if "prefix" in kwargs:
-        prefix = kwargs["prefix"]
 
     if "name" in kwargs and kwargs["name"] is not None:
         name = kwargs["name"]
@@ -431,20 +428,20 @@ def export(*bmaps, **kwargs):
     pack = packtype(name, ifExists=ifexists)
 
     for bmap in bmaps:
-        mpath = muz.vfs.normalizePath(prefix + bmap.music)
-
-        with bmap.musicFile as mus:
-            pack.addFile(mpath, mus)
-
         s = StringIO()
-        format.write(bmap, s)
+        newname, mappath, muspath = format.write(bmap, s)
         s.seek(0)
 
-        pack.addFile("%s%s.%s" % (prefix, bmap.name, format.extensions[0]), s)
+        muspath = "%s%s" % (muspath, os.path.splitext(bmap.music)[-1])
+
+        with bmap.musicFile as mus:
+            pack.addFile(muspath, mus)
+
+        pack.addFile(mappath, s)
 
     pack.save()
 
     if len(bmaps) > 1:
-        log.info("exported beatmaps as %s", repr(pack.path))
+        log.info("exported beatmaps as %s", pack.path)
     else:
-        log.info("exported beatmap %s as %s", repr(bmaps[0].name + "." + format.extensions[0]), repr(pack.path))
+        log.info("exported beatmap %s as %s", bmaps[0].name, pack.path)

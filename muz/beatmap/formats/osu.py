@@ -11,7 +11,7 @@ locations = ["beatmaps"]
 patternSection = re.compile(r'^\[([a-zA-Z0-9]+)\]$')
 patternKeyVal = re.compile(r'^([a-zA-Z0-9]+)\s*:\s*(.*)$')
 
-def read(fobj):
+def read(fobj, filename):
     buf = ""
     bmap = muz.beatmap.Beatmap(None, 1)
     versionOk = False

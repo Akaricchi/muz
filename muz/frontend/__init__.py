@@ -52,6 +52,14 @@ class Clock(object):
 class Frontend(object):
     __metaclass__ = ABCMeta
 
+    @abstractproperty
+    def supportedMusicFormats(self):
+        pass
+
+    @abstractproperty
+    def supportedSoundFormats(self):
+        pass
+
     @abstractmethod
     def postInit(self):
         pass

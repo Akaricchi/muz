@@ -93,6 +93,14 @@ class Frontend(muz.frontend.Frontend):
         self.screen = None
         self.gameRendererClass = muz.frontend.pygame.gamerenderer.GameRenderer
 
+    @property
+    def supportedMusicFormats(self):
+        return "ogg", "mp3", "wav"
+
+    @property
+    def supportedSoundFormats(self):
+        return "ogg", "wav"
+
     def makeDefaultConfig(self):
         return muz.config.get(__name__, {
             "audio": {

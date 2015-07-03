@@ -25,4 +25,4 @@ _config = muz.config.get(__name__, {
 import muz.util
 configureLogger(log)
 
-from muz.main import initvfs, run, userdir, NAME, VERSION, init, bareInit
+from muz.main import initvfs, run, NAME, VERSION, init, bareInit

@@ -1,14 +1,14 @@
 
 from __future__ import absolute_import
 
-import logging
+import logging, re
 log = logging.getLogger(__name__)
 
 import json
 import muz.beatmap
 
 extensions = ["rs"]
-locations = ["beatmaps"]
+locations = ["beatmaps/datafiles"]
 
 #
 # format spec:
@@ -36,17 +36,23 @@ DIFFICULTY_TO_ID = {
     "Expert" : 4,
 }
 
-def read(fobj):
+filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
+
+def read(fobj, filename):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
 
-    if "___muz_song_file" in data: # non-"standard"
-        mus = data["___muz_song_file"]
+    if filename is not None:
+        match = filenamePattern.findall(filename)
+        if match:
+            mus = match[0][0] + '.ogg'
+        else:
+            mus = "%s.ogg" % data["song_name"].replace("/", "_").encode('utf-8')
     else:
         mus = "%s.ogg" % data["song_name"].replace("/", "_").encode('utf-8')
 
-    bmap = muz.beatmap.Beatmap(None, 9, mus)
+    bmap = muz.beatmap.Beatmap(None, 9, "../soundfiles/" + mus)
 
     if "___muz_time_offset" in data: # non-"standard"
         timeofs = int(data["___muz_time_offset"])
@@ -123,3 +129,13 @@ def write(bmap, fobj):
 
     print root
     json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))
+
+    m = filenamePattern.findall(bmap.name + ".rs")
+    if m:
+        musname = m[0][0]
+        newname = bmap.name
+    else:
+        musname = bmap.name
+        newname = "%s_%s" % (bmap.name, ID_TO_DIFFICULTY[root["difficulty"]].lower())
+
+    return newname, "%s/%s.%s" %(locations[0], newname, extensions[0]), "beatmaps/soundfiles/%s" % musname

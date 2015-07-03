@@ -16,7 +16,7 @@ VERSION = "1"
 class ParseError(Exception):
     pass
 
-def read(fobj):
+def read(fobj, filename):
     buf = ""
     bmap = muz.beatmap.Beatmap(None, 1)
     initialized = False
@@ -89,3 +89,5 @@ def write(bmap, fobj):
 
     for note in bmap:
         fobj.write("note %i %i%s\n" % (note.band, note.hitTime, (" " + str(note.holdTime)) if note.holdTime else ""))
+
+    return bmap.name, "%s/%s.%s" % (locations[0], bmap.name, extensions[0]), "%s/%s" % (locations[0], bmap.name)
