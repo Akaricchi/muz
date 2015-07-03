@@ -1,5 +1,5 @@
 # μz
-μz is mania-style rhythm game, written in Python 2.7 using Pygame. It can load beatmaps from [**osu!**](https://osu.ppy.sh/) (osu!mania mode), [**SIFTrain**](https://github.com/kbz/SIFTrain) and [**LLpractice**](https://github.com/yjhatfdu/LLpractice), as well as its own beatmap format. Support for other formats may be added in the future.
+μz is a mania-style rhythm game, written in Python 2.7 using Pygame. It can load beatmaps from [**osu!**](https://osu.ppy.sh/) (osu!mania mode), [**SIFTrain**](https://github.com/kbz/SIFTrain) and [**LLpractice**](https://github.com/yjhatfdu/LLpractice), as well as its own beatmap format. Support for other formats may be added in the future.
 
 μz also features a simple (but useful) tool to assist with beatmap creation, BeatmapBuilder. Currently, it can export beatmaps in μz and SIFTrain formats.
 
