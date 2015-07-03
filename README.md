@@ -84,7 +84,7 @@ To install osu! beatmaps, simply place the osz files into the user directory, as
 ### SIFTrain
 SIFTrain beatmaps can be found in [**this repository**](https://github.com/kbz/beatmap-repo). They are beatmaps from Love Live! School Idol Festival, and come with no music - you'll have to obtain it yourself.
 
-To install these beatmaps, create a ```beatmaps``` folder inside the user directory and put them there. Put the music files in the same directory, named **songname.ogg**. The easiest way to find out the song name is to try to run the beatmap without music and read the error message.
+To install these beatmaps, create a ```beatmaps``` directory inside the user directory. Inside that directory, also create the ```datafiles``` and ```soundfiles``` directories. Put the beatmaps (```.rs``` files) in ```beatmaps/datafiles```, and the music in ```beatmaps/soundfiles```. The naming convention is just like in SIFTrain: the music files should have the same name as the beatmaps they are used by, minus the difficulty suffix. Either ogg or mp3 should work for the music format, but ogg is prefered.
 
 ### LLpractice
 μz can automatically download and install beatmaps from [m.tianyi9.com](https://m.tianyi9.com/#/index). Visit the site and click on the song you want to get. Look at the URL, there should be a **live_id** parameter. Copy its value, and run:
@@ -94,7 +94,7 @@ To install these beatmaps, create a ```beatmaps``` folder inside the user direct
 , where **ID** is the value of **live_id** from the URL. The download may take a while, be patient. After it's done, the beatmap should appear in ```muz -l```.
 
 # Configuration
-TODO
+μz can be customized with a configuration file. The config location can be specified with the ```--config``` argument. By default, it's the ```config.json``` file inside the μz user directory. This file doesn't exist by default - you have to create it if you want to change settings. μz will write a ```config.default.json``` file containing the default settings inside the user directory every time it's ran. You can copy this file as ```config.js``` and then edit the later. If your custom config is missing any settings, the default values will be used. If it contains any unrecognized settings or values of invalid type, you'll get a warning when the game is ran.
 
 # Known issues
- * Support for mp3 files is limited, [as stated in the Pygame documentation](https://www.pygame.org/docs/ref/music.html). For this reason, μz will try to load an ogg file of the same name whenever a beatmap wants to play an mp3 file. If you have issues with mp3 playback, try to re-encode the offending file in OGG Vorbis and put it in ```~/.muz/beatmaps```.
+ * Support for mp3 files is limited, [as stated in the Pygame documentation](https://www.pygame.org/docs/ref/music.html). For this reason, μz will try to load an ogg file of the same name whenever a beatmap wants to play an mp3 file. If you have issues with mp3 playback, try to re-encode the offending file in OGG Vorbis and put it in ```~/.muz/beatmaps``` or wherever the beatmap expects it to be in. μz can convert mp3s automatically if you have [**pydub**](http://pydub.com/) and [**ffmpeg**](https://www.ffmpeg.org/) installed. This feature is, however, disabled by default, because it's not always needed. If you want to use it, you have to enable the **"auto-convert-mp3"** option under the **"vfs"** section in the configuration file.
