@@ -94,7 +94,7 @@ To install these beatmaps, create a ```beatmaps``` directory inside the user dir
 , where **ID** is the value of **live_id** from the URL. The download may take a while, be patient. After it's done, the beatmap should appear in ```muz -l```.
 
 # Configuration
-TODO
+μz can be customized with a configuration file. The config location can be specified with the ```--config``` argument. By default, it's the ```config.json``` file inside the μz user directory. This file doesn't exist by default - you have to create it if you want to change settings. μz will write a ```config.default.json``` file containing the default settings inside the user directory every time it's ran. You can copy this file as ```config.js``` and then edit the later. If your custom config is missing any settings, the default values will be used. If it contains any unrecognized settings or values of invalid type, you'll get a warning when the game is ran.
 
 # Known issues
  * Support for mp3 files is limited, [as stated in the Pygame documentation](https://www.pygame.org/docs/ref/music.html). For this reason, μz will try to load an ogg file of the same name whenever a beatmap wants to play an mp3 file. If you have issues with mp3 playback, try to re-encode the offending file in OGG Vorbis and put it in ```~/.muz/beatmaps```.
