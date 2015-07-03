@@ -101,124 +101,134 @@ class Frontend(muz.frontend.Frontend):
     def supportedSoundFormats(self):
         return "ogg", "wav"
 
+    def makeDefaultConfigAudio(self):
+        return {
+            "frequency"             : 44100,
+            "buffer"                : 1024,
+            "size"                  : -16,
+            "channels"              : 2,
+            "driver"                : "default",
+            "sound-effect-volume"   : 0.7,
+            "music-volume"          : 0.5,
+        }
+
+    def makeDefaultConfigVideo(self):
+        return {
+            "window-width"          : 1280,
+            "window-height"         : 720,
+            "fullscreen"            : False,
+            "target-fps"            : 0,
+            "render-text"           : True,
+            "antialias-text"        : True,
+        }
+
+    def makeDefaultConfigKeysmaps(self):
+        return {
+            "global": {
+                "`"         :       "toggle-autoplay",
+                "pause"     :       "toggle-pause",
+                "escape"    :       "toggle-pause",
+                "f10"       :       "quit",
+    
+                "1"         :       "band:0",
+                "2"         :       "band:1",
+                "3"         :       "band:2",
+                "4"         :       "band:3",
+                "5"         :       "band:4",
+                "6"         :       "band:5",
+                "7"         :       "band:6",
+                "8"         :       "band:7",
+                "9"         :       "band:8",
+                "0"         :       "band:9",
+    
+                "left"      :       "seek:-1000",
+                "right"     :       "seek:1000",
+                "down"      :       "seek:-5000",
+                "up"        :       "seek:5000",
+            },
+    
+            "bandnum=1": {
+                "space"     :       "band:0",
+            },
+    
+            "bandnum=2": {
+                "f"         :       "band:0",
+                "j"         :       "band:1",
+            },
+    
+            "bandnum=3": {
+                "f"         :       "band:0",
+                "space"     :       "band:1",
+                "j"         :       "band:2",
+            },
+    
+            "bandnum=4": {
+                "d"         :       "band:0",
+                "f"         :       "band:1",
+                "j"         :       "band:2",
+                "k"         :       "band:3",
+            },
+    
+            "bandnum=5": {
+                "d"         :       "band:0",
+                "f"         :       "band:1",
+                "space"     :       "band:2",
+                "j"         :       "band:3",
+                "k"         :       "band:4",
+            },
+    
+            "bandnum=6": {
+                "s"         :       "band:0",
+                "d"         :       "band:1",
+                "f"         :       "band:2",
+                "j"         :       "band:3",
+                "k"         :       "band:4",
+                "l"         :       "band:5",
+            },
+    
+            "bandnum=7": {
+                "s"         :       "band:0",
+                "d"         :       "band:1",
+                "f"         :       "band:2",
+                "space"     :       "band:3",
+                "j"         :       "band:4",
+                "k"         :       "band:5",
+                "l"         :       "band:6",
+            },
+    
+            "bandnum=8": {
+                "a"         :       "band:0",
+                "s"         :       "band:1",
+                "d"         :       "band:2",
+                "f"         :       "band:3",
+                "j"         :       "band:4",
+                "k"         :       "band:5",
+                "l"         :       "band:6",
+                ";"         :       "band:7",
+            },
+    
+            "bandnum=9": {
+                "a"         :       "band:0",
+                "s"         :       "band:1",
+                "d"         :       "band:2",
+                "f"         :       "band:3",
+                "space"     :       "band:4",
+                "j"         :       "band:5",
+                "k"         :       "band:6",
+                "l"         :       "band:7",
+                ";"         :       "band:8",
+            },
+        }
+
+    def makeDefaultConfigRoot(self):
+        return {
+            "audio"   : self.makeDefaultConfigAudio(),
+            "video"   : self.makeDefaultConfigVideo(),
+            "keymaps" : self.makeDefaultConfigKeysmaps(),
+        }
+
     def makeDefaultConfig(self):
-        return muz.config.get(__name__, {
-            "audio": {
-                "frequency"             : 44100,
-                "buffer"                : 1024,
-                "size"                  : -16,
-                "channels"              : 2,
-                "driver"                : "default",
-                "sound-effect-volume"   : 0.7,
-                "music-volume"          : 0.5,
-            },
-
-            "video": {
-                "window-width"          : 1280,
-                "window-height"         : 720,
-                "fullscreen"            : False,
-                "target-fps"            : 0,
-                "render-text"           : True,
-                "antialias-text"        : True,
-            },
-
-            "keymaps": {
-                "global": {
-                    "`"         :       "toggle-autoplay",
-                    "pause"     :       "toggle-pause",
-                    "escape"    :       "toggle-pause",
-                    "f10"       :       "quit",
-
-                    "1"         :       "band:0",
-                    "2"         :       "band:1",
-                    "3"         :       "band:2",
-                    "4"         :       "band:3",
-                    "5"         :       "band:4",
-                    "6"         :       "band:5",
-                    "7"         :       "band:6",
-                    "8"         :       "band:7",
-                    "9"         :       "band:8",
-                    "0"         :       "band:9",
-
-                    "left"      :       "seek:-1000",
-                    "right"     :       "seek:1000",
-                    "down"      :       "seek:-5000",
-                    "up"        :       "seek:5000",
-                },
-
-                "bandnum=1": {
-                    "space"     :       "band:0",
-                },
-
-                "bandnum=2": {
-                    "f"         :       "band:0",
-                    "j"         :       "band:1",
-                },
-
-                "bandnum=3": {
-                    "f"         :       "band:0",
-                    "space"     :       "band:1",
-                    "j"         :       "band:2",
-                },
-
-                "bandnum=4": {
-                    "d"         :       "band:0",
-                    "f"         :       "band:1",
-                    "j"         :       "band:2",
-                    "k"         :       "band:3",
-                },
-
-                "bandnum=5": {
-                    "d"         :       "band:0",
-                    "f"         :       "band:1",
-                    "space"     :       "band:2",
-                    "j"         :       "band:3",
-                    "k"         :       "band:4",
-                },
-
-                "bandnum=6": {
-                    "s"         :       "band:0",
-                    "d"         :       "band:1",
-                    "f"         :       "band:2",
-                    "j"         :       "band:3",
-                    "k"         :       "band:4",
-                    "l"         :       "band:5",
-                },
-
-                "bandnum=7": {
-                    "s"         :       "band:0",
-                    "d"         :       "band:1",
-                    "f"         :       "band:2",
-                    "space"     :       "band:3",
-                    "j"         :       "band:4",
-                    "k"         :       "band:5",
-                    "l"         :       "band:6",
-                },
-
-                "bandnum=8": {
-                    "a"         :       "band:0",
-                    "s"         :       "band:1",
-                    "d"         :       "band:2",
-                    "f"         :       "band:3",
-                    "j"         :       "band:4",
-                    "k"         :       "band:5",
-                    "l"         :       "band:6",
-                    ";"         :       "band:7",
-                },
-
-                "bandnum=9": {
-                    "a"         :       "band:0",
-                    "s"         :       "band:1",
-                    "d"         :       "band:2",
-                    "f"         :       "band:3",
-                    "space"     :       "band:4",
-                    "j"         :       "band:5",
-                    "k"         :       "band:6",
-                    "l"         :       "band:7",
-                    ";"         :       "band:8",
-                },
-            },
-        })
+        return muz.config.get(__name__, self.makeDefaultConfigRoot())
 
     def postInit(self):
         a = self.config["audio"]
