@@ -93,17 +93,11 @@ def write(bmap, fobj):
     notes = []
 
     root = {
-        "___muz_song_file"  : bmap.music,
         "song_name"         : meta["siftrain.song_name"] or meta["Music.Name"] or meta["Music.Name.ASCII"],
         "difficulty"        : int(meta["siftrain.difficulty"])
                               if meta["siftrain.difficulty"] else
                               DIFFICULTY_TO_ID[meta["Beatmap.Variant"]],
-        "rank_info"         : [{
-            "rank"          : i,
-            "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
-        } for i in xrange(5, 0, -1)],
         "song_info"         : [{
-            "notes_speed"   : meta["siftrain.song_info.notes_speed"],
             "notes"         : notes
         }]
     }
@@ -127,7 +121,14 @@ def write(bmap, fobj):
         pn = note
         notes.append(n)
 
-    print root
+    if meta["siftrain.song_info.notes_speed"]:
+        root["song_info"][0]["notes_speed"] = meta["siftrain.song_info.notes_speed"]
+
+    if any(meta["siftrain.rank_info.%i.rank_max" % i] for i in xrange(5, 0, -1)):
+        root["rank_info"] = [{
+            "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
+        } for i in xrange(5, 0, -1)]
+
     json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))
 
     m = filenamePattern.findall(bmap.name + ".rs")
