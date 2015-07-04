@@ -24,9 +24,9 @@ def read(fobj, filename):
         pref = pref + muz.vfs.VPATH_SEP
 
     for d, f, v in p.walk():
-        n = "%s%s%s" % (d, muz.vfs.VPATH_SEP, f)
+        n = muz.beatmap.nameFromPath(pref + "%s%s%s" % (d, muz.vfs.VPATH_SEP, f))
 
-        if not muz.beatmap.nameFromPath(pref + n):
+        if not n:
             continue
 
         if bmap is not None:
