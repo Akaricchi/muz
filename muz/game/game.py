@@ -201,7 +201,7 @@ class Game(object):
 
     def stop(self):
         self.timeOffset = self.time
-        self.music.stop()
+        self.music.playing = False
         self.paused = True
 
     def seek(self, offs):
