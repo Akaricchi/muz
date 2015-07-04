@@ -363,8 +363,11 @@ def load(name):
         found = False
         paths = []
 
-        for location in importer.locations:
-            paths.append("%s/%s.%s"  % (location, name, ext))
+        if name.startswith(vfs.VPATH_SEP) or name.startswith(os.path.sep):
+            paths.append("%s.%s" % (name, ext))
+        else:
+            for location in importer.locations:
+                paths.append("%s/%s.%s"  % (location, name, ext))
 
         for path in paths:
             try:
