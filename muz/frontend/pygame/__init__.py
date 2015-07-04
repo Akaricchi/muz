@@ -141,6 +141,16 @@ class Frontend(muz.frontend.Frontend):
                 "9"         :       "band:8",
                 "0"         :       "band:9",
     
+                "a"         :       "band:-1",
+                "s"         :       "band:-1",
+                "d"         :       "band:-1",
+                "f"         :       "band:-1",
+                "space"     :       "band:-1",
+                "j"         :       "band:-1",
+                "k"         :       "band:-1",
+                "l"         :       "band:-1",
+                ";"         :       "band:-1",
+
                 "left"      :       "seek:-1000",
                 "right"     :       "seek:1000",
                 "down"      :       "seek:-5000",
