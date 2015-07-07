@@ -19,6 +19,7 @@ def makeDefaultConfig():
         "hold-gradients"    : True,
         "band-width"        : 0.8,
         "hold-width"        : 0.5,
+        "preserved-width"   : 0.0,
 
         "fonts": {
             "big"           : ["xolonium", 32, False],
@@ -169,8 +170,9 @@ class GameRenderer(object):
 
         self.nameSurf = self.renderText(game.beatmap.name, self.tinyFont, txtcolors["title"], direct=True)
 
+        awidth = bounds.width * (1.0 - config["preserved-width"])
         gapFactor = config["band-width"]
-        self.bandWidth = (bounds.width * gapFactor) / game.beatmap.numbands
+        self.bandWidth = (awidth * gapFactor) / game.beatmap.numbands
         self.holdWidth = self.bandWidth * config["hold-width"]
         bandShift = 0.5 * (bounds.width - ((game.beatmap.numbands - 1) * self.bandWidth) / gapFactor - self.bandWidth)
 
