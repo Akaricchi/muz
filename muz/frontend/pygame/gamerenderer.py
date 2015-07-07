@@ -5,73 +5,73 @@ import math
 import pygame
 
 import muz
-import muz.config
 import muz.game.scoreinfo as scoreinfo
 
 from muz.util import mix, clamp, approach
 from . import gradients
 
-config = muz.config.get(__name__, {
-    "show-timing-hints" : False,
-    "show-nearest-note" : False,
-    "overlay-alpha"     : 0.66,
-    "note-gradients"    : True,
-    "hold-gradients"    : True,
-    "hold-width"        : 0.5,
+def makeDefaultConfig():
+    return {
+        "show-timing-hints" : False,
+        "show-nearest-note" : False,
+        "overlay-alpha"     : 0.66,
+        "note-gradients"    : True,
+        "hold-gradients"    : True,
+        "hold-width"        : 0.5,
 
-    "fonts": {
-        "big"           : ["xolonium", 32, False],
-        "medium"        : ["xolonium", 24, False],
-        "small"         : ["xolonium", 14, False],
-        "tiny"          : ["xolonium", 10, False],
-    },
-
-    "colors": {
-        "background"    : [ 25,  25,  25],
-        "bandborder"    : [ 50,  50,  50],
-        "bandflash"     : [ 40,  40,  40],
-        "note"          : [200,  70,   0],
-        "holdbeam"      : [125,  70,   0],
-        "highlight"     : [  0, 150, 200],
-        "nearest-note"  : [  0, 255,   0],
-
-        "notes-by-band" : {
-            "enabled"   : True,
-            "hold-mixin": [125, 125, 125],
-            "hold-mixin-factor": 0.65,
-            "notes"     : [
-                [120,  10, 200],
-                [100, 100, 220],
-                [ 30, 175, 150],
-                [ 70, 200,   0],
-                [200, 200,  20],
-                [200, 100,   0],
-                [200,  20,  20],
-            ],
+        "fonts": {
+            "big"           : ["xolonium", 32, False],
+            "medium"        : ["xolonium", 24, False],
+            "small"         : ["xolonium", 14, False],
+            "tiny"          : ["xolonium", 10, False],
         },
 
-        "text": {
-            "perfect"   : [125, 255, 255],
-            "great"     : [100, 255, 100],
-            "good"      : [255, 255, 100],
-            "bad"       : [255, 100, 100],
-            "miss"      : [100, 100, 100],
+        "colors": {
+            "background"    : [ 25,  25,  25],
+            "bandborder"    : [ 50,  50,  50],
+            "bandflash"     : [ 40,  40,  40],
+            "note"          : [200,  70,   0],
+            "holdbeam"      : [125,  70,   0],
+            "highlight"     : [  0, 150, 200],
+            "nearest-note"  : [  0, 255,   0],
 
-            "title"     : [100, 100, 100],
-            "pause"     : [200, 200, 200],
-            "score"     : [200, 200, 200],
-            "combo"     : [200, 200, 200],
-            "best-combo": [150, 150, 150],
-            "fps"       : [100, 100, 100],
-            "time"      : [100, 100, 100],
-            "autoplay"  : [255, 255, 100],
+            "notes-by-band" : {
+                "enabled"   : True,
+                "hold-mixin": [125, 125, 125],
+                "hold-mixin-factor": 0.65,
+                "notes"     : [
+                    [120,  10, 200],
+                    [100, 100, 220],
+                    [ 30, 175, 150],
+                    [ 70, 200,   0],
+                    [200, 200,  20],
+                    [200, 100,   0],
+                    [200,  20,  20],
+                ],
+            },
 
-            "results-title"   : [200, 200, 200],
-            "results-caption" : [200, 200, 200],
-            "results-value"   : [200, 200, 200],
+            "text": {
+                "perfect"   : [125, 255, 255],
+                "great"     : [100, 255, 100],
+                "good"      : [255, 255, 100],
+                "bad"       : [255, 100, 100],
+                "miss"      : [100, 100, 100],
+
+                "title"     : [100, 100, 100],
+                "pause"     : [200, 200, 200],
+                "score"     : [200, 200, 200],
+                "combo"     : [200, 200, 200],
+                "best-combo": [150, 150, 150],
+                "fps"       : [100, 100, 100],
+                "time"      : [100, 100, 100],
+                "autoplay"  : [255, 255, 100],
+
+                "results-title"   : [200, 200, 200],
+                "results-caption" : [200, 200, 200],
+                "results-value"   : [200, 200, 200],
+            }
         }
     }
-})
 
 class Band(object):
     def __init__(self):
@@ -81,12 +81,14 @@ class Band(object):
         self.drawngradients = 0
 
 class GameRenderer(object):
-    def __init__(self, game):
+    def __init__(self, game, config):
         self.game = game
         self.screen = None
         self.prepareDrawNeeded = True
         self.updateFpsTime = -2
         self.time = 0
+
+        self.config = config
 
         self.showTimingHints = config["show-timing-hints"]
         self.bands = tuple(Band() for i in xrange(len(self.game.bands)))
@@ -147,6 +149,7 @@ class GameRenderer(object):
     def prepareDraw(self, screen):
         bounds = screen.get_rect()
         game = self.game
+        config = self.config
         colors = config["colors"]
         txtcolors = colors["text"]
 
@@ -240,6 +243,7 @@ class GameRenderer(object):
 
         game = self.game
         stats = game.stats
+        config = self.config
         colors = config["colors"]
         txtcolors = colors["text"]
         dt = game.clock.deltaTime
@@ -433,6 +437,7 @@ class GameRenderer(object):
         self.time += dt
 
     def drawResults(self):
+        config = self.config
         screen = self.screen
         bounds = screen.get_rect()
         game = self.game

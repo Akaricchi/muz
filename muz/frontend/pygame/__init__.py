@@ -122,7 +122,7 @@ class Frontend(muz.frontend.Frontend):
             "antialias-text"        : True,
         }
 
-    def makeDefaultConfigKeysmaps(self):
+    def makeDefaultConfigKeymaps(self):
         return {
             "global": {
                 "`"         :       "toggle-autoplay",
@@ -234,7 +234,8 @@ class Frontend(muz.frontend.Frontend):
         return {
             "audio"   : self.makeDefaultConfigAudio(),
             "video"   : self.makeDefaultConfigVideo(),
-            "keymaps" : self.makeDefaultConfigKeysmaps(),
+            "keymaps" : self.makeDefaultConfigKeymaps(),
+            "gamerenderer" : muz.muz.frontend.pygame.gamerenderer.makeDefaultConfig()
         }
 
     def makeDefaultConfig(self):
@@ -335,7 +336,7 @@ class Frontend(muz.frontend.Frontend):
                 self.command(self.keymap[event.key], True)
 
     def gameLoop(self, activity):
-        renderer = self.gameRendererClass(activity)
+        renderer = self.gameRendererClass(activity, self.config["gamerenderer"])
         self.activity = activity
         activity.renderer = renderer
         clock = Clock(self.config["video"]["target-fps"])
