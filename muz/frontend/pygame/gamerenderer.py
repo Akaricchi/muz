@@ -27,8 +27,23 @@ config = muz.config.get(__name__, {
         "bandflash"     : [ 50,  50,  50],
         "note"          : [200,  70,   0],
         "holdbeam"      : [125,  70,   0],
-        "highlight"     : [  0, 100, 150],
+        "highlight"     : [  0, 150, 200],
         "nearest-note"  : [  0, 255,   0],
+
+        "notes-by-band" : {
+            "enabled"   : False,
+            "hold-mixin": [125, 125, 125],
+            "hold-mixin-factor": 0.65,
+            "notes"     : [
+                [120,  10, 200],
+                [100, 100, 220],
+                [ 30, 175, 150],
+                [ 70, 200,   0],
+                [200, 200,  20],
+                [200, 100,   0],
+                [200,  20,  20],
+            ],
+        },
 
         "text": {
             "perfect"   : [125, 255, 255],
@@ -83,6 +98,23 @@ class GameRenderer(object):
         self.tinyFont   = self.frontend.loadFont(*config["fonts"]["tiny"])
 
         self.overlayAlpha = config["overlay-alpha"] * 255
+
+        self.notecolors = []
+        self.beamcolors = []
+
+        nbb = config["colors"]["notes-by-band"]
+        if nbb["enabled"]:
+            colors = nbb["notes"]
+            colorcount = len(colors)
+            bandcount = len(self.bands)
+
+            for i in (a * max(1, int(round(colorcount / float(bandcount)))) for a in xrange(bandcount)):
+                clr = colors[(i - max(0, (bandcount - colorcount) / 2)) % colorcount]
+                self.notecolors.append(clr)
+                self.beamcolors.append(mix(clr, nbb["hold-mixin"], nbb["hold-mixin-factor"]))
+        else:
+            self.notecolors = [config["colors"]["note"]]     * len(self.bands)
+            self.beamcolors = [config["colors"]["holdbeam"]] * len(self.bands)
 
         self.dummySurf = None
 
@@ -245,8 +277,8 @@ class GameRenderer(object):
                 clr2 = colors["highlight"]
                 o = min(o, bounds.height - self.targetoffs - 5)
             else:
-                clr1 = colors["note"]
-                clr2 = colors["holdbeam"]
+                clr1 = self.notecolors[note.band]
+                clr2 = self.beamcolors[note.band]
 
             if config["show-nearest-note"] and game.beatmap.nearest(note.band, game.time, muz.game.scoreinfo.miss.threshold) is note:
                 clr1 = (0, 255, 0)
