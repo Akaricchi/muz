@@ -18,7 +18,7 @@ def makeDefaultConfig():
         "note-gradients"    : True,
         "hold-gradients"    : True,
         "band-width"        : 0.8,
-        "hold-width"        : 0.5,
+        "hold-width"        : 1.0,
         "preserved-width"   : 0.0,
 
         "fonts": {
@@ -204,7 +204,7 @@ class GameRenderer(object):
                 for a in xrange(255):
                     c = self.notecolors[num]
                     g = gradients.vertical((1, int((bounds.height - self.targetoffs) / 5)),
-                                           (c.r, c.g, c.b, a + 1), (0, 0, 0, 0))
+                                           (c.r, c.g, c.b, a + 1), (c.r, c.g, c.b, 0))
                     gradlist.append(g)
 
                 self.gradients.append(gradlist)
