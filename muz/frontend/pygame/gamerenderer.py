@@ -17,6 +17,7 @@ config = muz.config.get(__name__, {
     "overlay-alpha"     : 0.66,
     "note-gradients"    : True,
     "hold-gradients"    : True,
+    "hold-width"        : 0.5,
 
     "fonts": {
         "big"           : ["xolonium", 32, False],
@@ -166,6 +167,7 @@ class GameRenderer(object):
 
         gapFactor = 0.8
         self.bandWidth = (bounds.width * gapFactor) / game.beatmap.numbands
+        self.holdWidth = self.bandWidth * config["hold-width"]
         bandShift = 0.5 * (bounds.width - ((game.beatmap.numbands - 1) * self.bandWidth) / gapFactor - self.bandWidth)
 
         self.noteHitSurf = pygame.Surface((self.bandWidth, self.targetoffs + 5))
@@ -321,7 +323,7 @@ class GameRenderer(object):
 
             if note.holdTime:
                 x = bounds.height - holddiff * noterate
-                beam = pygame.Rect(bandoffs + bandWidth * 0.25, x, bandWidth * 0.5, o - x + 5)
+                beam = pygame.Rect(bandoffs + bandWidth * 0.5 - self.holdWidth * 0.5, x, self.holdWidth, o - x + 5)
 
                 pygame.draw.rect(screen, clr2, beam, 1 if self.holdGradients else 0)
 
