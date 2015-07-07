@@ -47,7 +47,7 @@ On decent operating systems, you can filter the output with ```grep``` to find a
 
 To play a beatmap with note positions randomized:
 
-    muz --random "beatamp"
+    muz --random "beatmap"
 
 Replace all holds with two simple notes:
 
