@@ -342,18 +342,21 @@ class Frontend(muz.frontend.Frontend):
         activity.clock = clock
         screen = self.screen
 
-        while True:
-            for event in pygame.event.get():
-                try:
-                    self.handleEvent(event)
-                except QuitRequest:
-                    return
+        try:
+            while True:
+                for event in pygame.event.get():
+                    try:
+                        self.handleEvent(event)
+                    except QuitRequest:
+                        return
 
-            activity.update()
-            renderer.draw(screen)
+                activity.update()
+                renderer.draw(screen)
 
-            pygame.display.flip()
-            clock.tick()
+                pygame.display.flip()
+                clock.tick()
+        finally:
+            self._music.playing = False
 
     def getTitle(self):
         return pygame.display.get_caption()

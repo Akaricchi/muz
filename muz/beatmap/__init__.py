@@ -65,5 +65,9 @@ def main(mapfunc, defaultPos=0, defaultLoopLimit=0, defaultFormat='pack'):
     muz.main.init(requireFrontend=True)
     bmap = mapfunc()[0]
     bmap.applyMeta()
-    muz.main.playBeatmap(bmap)
+
+    try:
+        muz.main.playBeatmap(bmap)
+    finally:
+        muz.main.frontend.shutdown()
 

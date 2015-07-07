@@ -185,10 +185,7 @@ def loadConfig(requireLogLevel=logging.CRITICAL):
         muz.log.setLevel(min(requireLogLevel, muz.util.logLevelByName(muz._config["log"]["level"])))
 
 def playBeatmap(bmap):
-    try:
-        frontend.gameLoop(game.Game(bmap, frontend))
-    finally:
-        frontend.shutdown()
+    frontend.gameLoop(game.Game(bmap, frontend))
 
 def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
     global frontend
@@ -227,7 +224,11 @@ def run(*argv):
     n, argv = handleRemainingArgs(p, argv, n)
 
     init(requireFrontend=True)
-    playBeatmap(beatmap.load(n.beatmap[0]))
+
+    try:
+        playBeatmap(beatmap.load(n.beatmap[0]))
+    finally:
+        frontend.shutdown()
 
 if __name__ == "__main__":
     run(*sys.argv)
