@@ -7,7 +7,11 @@ from StringIO import StringIO
 import muz
 import muz.util
 import muz.vfs
+import muz.config
 
+config = muz.config.get(__name__, {
+    "offset": 50
+})
 log = logging.getLogger(__name__)
 
 extensions = ["json"]
@@ -23,7 +27,7 @@ def read(fobj, filename):
 
     bmap = muz.beatmap.Beatmap(None, 9, musfile)
 
-    ofs = 0
+    ofs = config["offset"]
 
     for lane in data["lane"]:
         for note in lane:
