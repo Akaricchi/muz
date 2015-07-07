@@ -73,7 +73,7 @@ def obtain(liveid):
     f = opener.open("%s/fo?live_id=%s&file_id=%s" % (api, liveid, meta["map_file"]))
     s.write(f.read())
     s.seek(0)
-    musfile = json.load(s)["audiofile"]
+    musfile = json.loads(s.read().decode('utf-8', errors='ignore'))["audiofile"]
     s.seek(0)
 
     if not musfile.endswith('.mp3') and not musfile.endswith('.ogg'):
