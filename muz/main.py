@@ -212,6 +212,7 @@ def bareInit(requireFrontend=False):
     n = None
     argv = []
     n, argv = handleGeneralArgs(p, argv, n)
+    n, argv = handleGameArgs(p, argv, n, beatmapOption=False)
     n, argv = handleRemainingArgs(p, argv, n)
     init(requireFrontend=requireFrontend)
 
