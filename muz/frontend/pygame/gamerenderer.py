@@ -7,12 +7,16 @@ import pygame
 import muz
 import muz.config
 import muz.game.scoreinfo as scoreinfo
+
 from muz.util import mix, clamp, approach
+from . import gradients
 
 config = muz.config.get(__name__, {
     "show-timing-hints" : False,
     "show-nearest-note" : False,
     "overlay-alpha"     : 0.66,
+    "note-gradients"    : True,
+    "hold-gradients"    : True,
 
     "fonts": {
         "big"           : ["xolonium", 32, False],
@@ -24,14 +28,14 @@ config = muz.config.get(__name__, {
     "colors": {
         "background"    : [ 25,  25,  25],
         "bandborder"    : [ 50,  50,  50],
-        "bandflash"     : [ 50,  50,  50],
+        "bandflash"     : [ 40,  40,  40],
         "note"          : [200,  70,   0],
         "holdbeam"      : [125,  70,   0],
         "highlight"     : [  0, 150, 200],
         "nearest-note"  : [  0, 255,   0],
 
         "notes-by-band" : {
-            "enabled"   : False,
+            "enabled"   : True,
             "hold-mixin": [125, 125, 125],
             "hold-mixin-factor": 0.65,
             "notes"     : [
@@ -73,6 +77,7 @@ class Band(object):
         self.held = False
         self.flash = 0
         self.offset = 0
+        self.drawngradients = 0
 
 class GameRenderer(object):
     def __init__(self, game):
@@ -97,6 +102,8 @@ class GameRenderer(object):
         self.smallFont  = self.frontend.loadFont(*config["fonts"]["small"])
         self.tinyFont   = self.frontend.loadFont(*config["fonts"]["tiny"])
 
+        self.noteGradients = config["note-gradients"]
+        self.holdGradients = config["hold-gradients"]
         self.overlayAlpha = config["overlay-alpha"] * 255
 
         self.notecolors = []
@@ -109,12 +116,14 @@ class GameRenderer(object):
             bandcount = len(self.bands)
 
             for i in (a * max(1, int(round(colorcount / float(bandcount)))) for a in xrange(bandcount)):
-                clr = colors[(i - max(0, (bandcount - colorcount) / 2)) % colorcount]
-                self.notecolors.append(clr)
-                self.beamcolors.append(mix(clr, nbb["hold-mixin"], nbb["hold-mixin-factor"]))
+                note = colors[(i - max(0, (bandcount - colorcount) / 2)) % colorcount]
+                beam = mix(note, nbb["hold-mixin"], nbb["hold-mixin-factor"])
+
+                self.notecolors.append(pygame.Color(*note))
+                self.beamcolors.append(pygame.Color(*beam))
         else:
-            self.notecolors = [config["colors"]["note"]]     * len(self.bands)
-            self.beamcolors = [config["colors"]["holdbeam"]] * len(self.bands)
+            self.notecolors = [pygame.Color(*config["colors"]["note"])]     * len(self.bands)
+            self.beamcolors = [pygame.Color(*config["colors"]["holdbeam"])] * len(self.bands)
 
         self.dummySurf = None
 
@@ -179,6 +188,23 @@ class GameRenderer(object):
         self.bandAccSurf = pygame.Surface((self.bandWidth, bounds.height))
         self.bandAccSurf.set_colorkey((0, 0, 0, 0))
         self.bandAccSurf.set_alpha(25)
+
+        if self.noteGradients or self.holdGradients:
+            self.gradients = []
+            for num, band in enumerate(self.bands):
+                gradlist = [None]
+                for a in xrange(255):
+                    c = self.notecolors[num]
+                    g = gradients.vertical((1, int((bounds.height - self.targetoffs) / 5)),
+                                           (c.r, c.g, c.b, a + 1), (0, 0, 0, 0))
+                    gradlist.append(g)
+
+                self.gradients.append(gradlist)
+
+            if self.holdGradients:
+                c = pygame.Color(*config["colors"]["highlight"])
+                self.highlightGradient = gradients.vertical((1, int((bounds.height - self.targetoffs) / 5)),
+                                                            (c.r, c.g, c.b, 168), (c.r, c.g, c.b, 40))
 
         #
         #   results
@@ -254,6 +280,9 @@ class GameRenderer(object):
                 screen.blit(self.bandAccSurf, (o, 0))
 
             pygame.draw.rect(screen, colors["bandborder"], (o, 0, bandWidth, bounds.height), 1)
+            band.drawngradients = 0
+
+        maxNoteDist = float(bounds.height - self.targetoffs)
 
         for note in game.beatmap:
             hitdiff  = note.hitTime - game.time + self.targetoffs / noterate
@@ -262,35 +291,60 @@ class GameRenderer(object):
             if holddiff < 0:
                 continue
 
-            if hitdiff * noterate > bounds.height:
+            if hitdiff * noterate > bounds.height + 5:
                 break
 
             if note in game.removeNotes:
                 continue
 
             band = game.bands[note.band]
-            bandoffs = self.bands[note.band].offset
+            vband = self.bands[note.band]
+            bandoffs = vband.offset
             o = bounds.height - hitdiff * noterate
+            grad = None
 
             if band.heldNote == note:
+                if self.holdGradients:
+                    grad = self.highlightGradient
                 clr1 = colors["highlight"]
                 clr2 = colors["highlight"]
                 o = min(o, bounds.height - self.targetoffs - 5)
             else:
+                if self.holdGradients:
+                    grad = self.gradients[note.band][128]
                 clr1 = self.notecolors[note.band]
                 clr2 = self.beamcolors[note.band]
 
             if config["show-nearest-note"] and game.beatmap.nearest(note.band, game.time, muz.game.scoreinfo.miss.threshold) is note:
-                clr1 = (0, 255, 0)
-                clr2 = (0, 255, 0)
+                clr1 = colors["nearest-note"]
+                clr2 = colors["nearest-note"]
 
             if note.holdTime:
                 x = bounds.height - holddiff * noterate
+                beam = pygame.Rect(bandoffs + bandWidth * 0.25, x, bandWidth * 0.5, o - x + 5)
 
-                pygame.draw.rect(screen, clr2, (bandoffs + bandWidth * 0.25, x, bandWidth * 0.5, o - x + 5), 0)
+                pygame.draw.rect(screen, clr2, beam, 1 if self.holdGradients else 0)
+
+                if grad is not None:
+                    h = int(beam.height)
+                    if h > 0:
+                        grad = pygame.transform.flip(grad, False, True)
+                        grad = pygame.transform.scale(grad, (int(beam.width), h))
+                        screen.blit(grad, beam)
+                        vband.drawngradients += 1
+
                 pygame.draw.rect(screen, clr1, (bandoffs, x, bandWidth, 5), 0)
 
             pygame.draw.rect(screen, clr1, (bandoffs, o, bandWidth, 5), 0)
+
+            if self.noteGradients:
+                sz = int(bounds.height - self.targetoffs - o)
+                if sz > 0:
+                    s = self.gradients[note.band][int(clamp(0, (2 - vband.drawngradients * 0.5) * (o / maxNoteDist), 1) * 50.0)]
+                    if s is not None:
+                        s = pygame.transform.scale(s, (int(self.bandWidth), sz))
+                        screen.blit(s, (bandoffs, o + 5))
+                        vband.drawngradients += 1
 
         for band in self.bands:
             o = band.offset
