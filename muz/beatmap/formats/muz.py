@@ -16,7 +16,7 @@ VERSION = "1"
 class ParseError(Exception):
     pass
 
-def read(fobj, filename):
+def read(fobj, filename, bare=False):
     buf = ""
     bmap = muz.beatmap.Beatmap(None, 1)
     initialized = False
@@ -51,15 +51,16 @@ def read(fobj, filename):
                     elif s == "essential":
                         if essentialParsed:
                             log.warning("duplicate 'essential' statement ignored")
-                        else:
+                        elif not bare:
                             args = args.split(' ', 2)
 
                             maxnotes = int(args[0])
                             bmap.numbands = int(args[1])
                             bmap.music = args[2]
-                            essentialParsed = True
+
+                        essentialParsed = True
                     elif s == "note":
-                        if essentialParsed:
+                        if not bare and essentialParsed:
                             args = args.split(' ')
                             bmap.append(muz.beatmap.Note(
                                 *(int(a) for a in args[:2] + [args[2] if len(args) > 2 else 0])
@@ -71,11 +72,12 @@ def read(fobj, filename):
 
         buf += byte
     
-    if len(bmap) < maxnotes:
-        log.warning("premature EOF: expected %i notes, got %i", maxnotes, len(bmap))
+    if not bare:
+        if len(bmap) < maxnotes:
+            log.warning("premature EOF: expected %i notes, got %i", maxnotes, len(bmap))
 
-    if not essentialParsed or not maxnotes > 0:
-        raise ParseError("empty beatmap")
+        if not essentialParsed or not maxnotes > 0:
+            raise ParseError("empty beatmap")
 
     bmap.applyMeta()
     return bmap

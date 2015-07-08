@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 extensions = ["json"]
 locations = ["beatmaps"]
 
-def read(fobj, filename):
+def read(fobj, filename, bare=False):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):].decode('utf-8', errors='ignore'))
     musfile = data["audiofile"]
@@ -27,20 +27,21 @@ def read(fobj, filename):
 
     bmap = muz.beatmap.Beatmap(None, 9, musfile)
 
-    ofs = config["offset"]
+    if not bare:
+        ofs = config["offset"]
 
-    for lane in data["lane"]:
-        for note in lane:
-            hitTime = note["starttime"] + ofs
-            band = note["lane"]
-            holdTime = 0
+        for lane in data["lane"]:
+            for note in lane:
+                hitTime = note["starttime"] + ofs
+                band = note["lane"]
+                holdTime = 0
 
-            # there's also a "hold" key but it seems to be always false
-            if note["longnote"]:
-                holdTime = int(note["endtime"] - hitTime + ofs)
+                # there's also a "hold" key but it seems to be always false
+                if note["longnote"]:
+                    holdTime = int(note["endtime"] - hitTime + ofs)
 
-            hitTime = int(hitTime)
-            bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
+                hitTime = int(hitTime)
+                bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
 
     bmap.fix()
 

@@ -379,7 +379,7 @@ class BeatmapBuilder(object):
     def rawpause(self, delay):
         self.pos += delay
 
-def load(name):
+def load(name, bare=False):
     name = str(name)
     node = None
     wantext = None
@@ -421,7 +421,7 @@ def load(name):
     if node is None:
         raise RuntimeError("No importer available for beatmap %s" % name)
 
-    bm = importer.read(node.open(), node.name)
+    bm = importer.read(node.open(), node.name, bare=bare)
     if bm.vfsNode is None:
         bm.vfsNode = node
 

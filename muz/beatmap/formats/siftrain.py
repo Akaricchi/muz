@@ -38,7 +38,7 @@ DIFFICULTY_TO_ID = {
 
 filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
 
-def read(fobj, filename):
+def read(fobj, filename, bare=False):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
@@ -54,21 +54,22 @@ def read(fobj, filename):
 
     bmap = muz.beatmap.Beatmap(None, 9, "../soundfiles/" + mus)
 
-    if "___muz_time_offset" in data: # non-"standard"
-        timeofs = int(data["___muz_time_offset"])
-    else:
-        timeofs = 0
+    if not bare:
+        if "___muz_time_offset" in data: # non-"standard"
+            timeofs = int(data["___muz_time_offset"])
+        else:
+            timeofs = 0
 
-    for note in songinfo["notes"]:
-        hitTime = int(note["timing_sec"] * 1000) + timeofs
-        holdTime = 0
-        band = 9 - int(note["position"])
-        effect = int(note["effect"])
+        for note in songinfo["notes"]:
+            hitTime = int(note["timing_sec"] * 1000) + timeofs
+            holdTime = 0
+            band = 9 - int(note["position"])
+            effect = int(note["effect"])
 
-        if effect & FLAG_HOLD:
-            holdTime = int(note["effect_value"] * 1000)
+            if effect & FLAG_HOLD:
+                holdTime = int(note["effect_value"] * 1000)
 
-        bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
+            bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
 
     if "song_name" in data:
         bmap.meta["Music.Name"] = data["song_name"]

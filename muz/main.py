@@ -64,7 +64,7 @@ def handleGeneralArgs(parser, argv, namespace):
                    help="load an alternative configuration file (default: $userdir/config.json)")
     
     g.add_argument('-l', '--list-beatmaps', dest="listbeatmaps", action="count", default=False,
-                   help="list all beatmaps found in the virtual filesystem")
+                   help="list all beatmaps found in the virtual filesystem, specify twice to also list their 'nicer' names parsed from metadata (slow)")
 
     g.add_argument('-L', '--list-vfs', dest="listvfspath", metavar="PATH", action="store", nargs='?', const='', default=None,
                    help="list the contents of a path in the virtual filesystem and exit")
@@ -102,8 +102,13 @@ def handleGeneralArgs(parser, argv, namespace):
     if n.listbeatmaps:
         init()
         def getname(s):
-            b = muz.beatmap.load(s)
-            return b.name
+            try:
+                b = muz.beatmap.load(s, bare=True)
+            except Exception as e:
+                log.exception("failed to load beatmap %s: %s", s, e)
+                return ""
+            else:
+                return b.name
 
         print "\n".join(s + ((": %s" % getname(s)) if n.listbeatmaps > 1 else "")
             for s in sorted(muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()) if s)
