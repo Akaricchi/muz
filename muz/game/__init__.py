@@ -19,6 +19,8 @@ config = muz.config.get(__name__, {
     "no-holds"                      :       False,
     "holdify"                       :       False,
     "insane"                        :       False,
+    "shuffle-bands"                 :       False,
+    "mirror-bands"                  :       False,
 })
 
 log = logging.getLogger(__name__)

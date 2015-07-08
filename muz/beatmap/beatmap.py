@@ -292,6 +292,18 @@ class Beatmap(collections.MutableSequence):
         self.notelist.extend(newNotes)
         self.fix()
 
+    def orderBands(self, order):
+        for note in self:
+            note.band = order[note.band]
+
+    def shuffleBands(self):
+        o = range(self.numbands)
+        random.shuffle(o)
+        self.orderBands(o)
+
+    def mirrorBands(self):
+        self.orderBands(range(self.numbands)[::-1])
+
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)
         #self.applyMeta()

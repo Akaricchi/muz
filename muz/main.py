@@ -128,6 +128,12 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('-r', '--random', action='store_true', default=False,
                    help='randomize note positions on the beatmap')
 
+    g.add_argument('--shuffle-bands', action='store_true', default=False,
+                   help='shuffle band positions')
+
+    g.add_argument('--mirror-bands', action='store_true', default=False,
+                   help='mirror band positions')
+
     g.add_argument('--no-holds', action='store_true', default=False,
                    help='replace each hold note with two hit notes')
 
