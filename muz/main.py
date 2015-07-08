@@ -223,10 +223,13 @@ def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
     if frontend is not None:
         frontend.postInit()
 
-def bareInit(requireFrontend=False):
+def bareInit(argv=None, requireFrontend=False):
     p = initArgParser()
     n = None
-    argv = []
+
+    if argv is None:
+        argv = []
+
     n, argv = handleGeneralArgs(p, argv, n)
     n, argv = handleGameArgs(p, argv, n, beatmapOption=False)
     n, argv = handleRemainingArgs(p, argv, n)
