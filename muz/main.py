@@ -130,6 +130,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
         g.add_argument('beatmap', type=str, nargs=1,
                        help='run the game with the specified beatmap')
 
+    g.add_argument('--importer-options', action='store', default=None,
+                   help='pass an option string to the beatmap importer')
+
     g.add_argument('--start-from', dest='startfrom', metavar='TIME', type=int, action='store', default=0,
                    help='start playing from an arbitrary position, in milliseconds (default: 0)')
 
@@ -255,7 +258,7 @@ def run(*argv):
     init(requireFrontend=True)
 
     try:
-        playBeatmap(beatmap.load(n.beatmap[0]))
+        playBeatmap(beatmap.load(n.beatmap[0], options=n.importer_options))
     finally:
         frontend.shutdown()
 

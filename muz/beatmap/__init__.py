@@ -18,6 +18,9 @@ def handleExportArgs(parser, argv, namespace, mapfunc):
     n, a = parser.parse_known_args(argv, namespace=namespace)
 
     if n.help or n.export:
+        g.add_argument('--exporter-options', action='store', default=None,
+                       help='pass an option string to the beatmap exporter')
+
         g.add_argument('--format', action="store", default="muz", choices=list(muz.beatmap.formats.exportersByName.keys()),
                        help="the beatmap format (default: %(default)s)")
 
@@ -35,7 +38,8 @@ def handleExportArgs(parser, argv, namespace, mapfunc):
         export(*mapfunc(),
             packType=muz.vfs.VirtualPack if n.virtual else muz.vfs.Pack,
             format=muz.beatmap.formats.exportersByName[n.format],
-            name=n.packname
+            name=n.packname,
+            options=n.exporter_options
         )
 
         exit(0)

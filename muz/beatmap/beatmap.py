@@ -381,7 +381,7 @@ class BeatmapBuilder(object):
     def rawpause(self, delay):
         self.pos += delay
 
-def load(name, bare=False):
+def load(name, bare=False, options=None):
     name = str(name)
     node = None
     wantext = None
@@ -423,7 +423,7 @@ def load(name, bare=False):
     if node is None:
         raise RuntimeError("No importer available for beatmap %s" % name)
 
-    bm = importer.read(node.open(), node.name, bare=bare)
+    bm = importer.read(node.open(), node.name, bare=bare, options=options)
     if bm.vfsNode is None:
         bm.vfsNode = node
 
@@ -449,6 +449,7 @@ def export(*bmaps, **kwargs):
     format = formats.muz
     packtype = vfs.VirtualPack
     ifexists = 'remove'
+    options = None
 
     if "format" in kwargs:
         format = kwargs["format"]
@@ -458,6 +459,9 @@ def export(*bmaps, **kwargs):
 
     if "ifExists" in kwargs:
         ifexists = kwargs["ifExists"]
+
+    if "options" in kwargs:
+        options = kwargs["options"]
 
     if "name" in kwargs and kwargs["name"] is not None:
         name = kwargs["name"]
@@ -470,7 +474,7 @@ def export(*bmaps, **kwargs):
 
     for bmap in bmaps:
         s = StringIO()
-        newname, mappath, muspath = format.write(bmap, s)
+        newname, mappath, muspath = format.write(bmap, s, options=options)
         s.seek(0)
 
         muspath = "%s%s" % (muspath, os.path.splitext(bmap.music)[-1])

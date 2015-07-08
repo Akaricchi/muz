@@ -16,9 +16,19 @@ locations = ["."]
 class PackError(Exception):
     pass
 
-def read(fobj, filename, bare=False):
+def read(fobj, filename, bare=False, options=None):
     p, pref = muz.vfs.root.loadPack(fobj.name)
     bmap = None
+    submap = None
+
+    if options is not None:
+        if isinstance(options, str):
+            submap = options
+        else:
+            submap = options["submap"]
+
+    if submap is not None:
+        return muz.beatmap.load(submap, bare=bare)
 
     if pref:
         pref = pref + muz.vfs.VPATH_SEP
@@ -36,6 +46,6 @@ def read(fobj, filename, bare=False):
         bmap = n
 
     if bmap is None:
-        raise PackError("pack contains no beatmaps")
+        raise PackError("couldn't locate beatmap in pack")
 
     return muz.beatmap.load(bmap, bare=bare)

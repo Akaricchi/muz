@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 extensions = ["json"]
 locations = ["beatmaps"]
 
-def read(fobj, filename, bare=False):
+def read(fobj, filename, bare=False, options=None):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):].decode('utf-8', errors='ignore'))
     musfile = data["audiofile"]

@@ -38,7 +38,7 @@ DIFFICULTY_TO_ID = {
 
 filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
 
-def read(fobj, filename, bare=False):
+def read(fobj, filename, bare=False, options=None):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
@@ -93,7 +93,7 @@ def read(fobj, filename, bare=False):
     bmap.applyMeta()
     return bmap
 
-def write(bmap, fobj):
+def write(bmap, fobj, options=None):
     bmap.fix()
     meta = bmap.meta
     notes = []
