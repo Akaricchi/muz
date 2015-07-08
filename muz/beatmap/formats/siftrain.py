@@ -70,19 +70,24 @@ def read(fobj, filename):
 
         bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
 
-    bmap.meta["Music.Name"] = data["song_name"]
-    bmap.meta["siftrain.song_name"] = data["song_name"]
+    if "song_name" in data:
+        bmap.meta["Music.Name"] = data["song_name"]
+        bmap.meta["siftrain.song_name"] = data["song_name"]
 
-    try:
-        bmap.meta["Beatmap.Variant"] = ID_TO_DIFFICULTY[data["difficulty"]]
-    except (KeyError, TypeError):
-        log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
+    if "difficulty" in data:
+        try:
+            bmap.meta["Beatmap.Variant"] = ID_TO_DIFFICULTY[data["difficulty"]]
+        except (KeyError, TypeError):
+            log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
 
-    bmap.meta["siftrain.difficulty"] = data["difficulty"]
-    bmap.meta["siftrain.song_info.notes_speed"] = songinfo["notes_speed"]
+        bmap.meta["siftrain.difficulty"] = data["difficulty"]
 
-    for rank in data["rank_info"]:
-        bmap.meta["siftrain.rank_info.%i.rank_max" % rank["rank"]] = rank["rank_max"]
+    if "notes_speed" in songinfo:
+        bmap.meta["siftrain.song_info.notes_speed"] = songinfo["notes_speed"]
+
+    if "rank_info" in data:
+        for rank in data["rank_info"]:
+            bmap.meta["siftrain.rank_info.%i.rank_max" % rank["rank"]] = rank["rank_max"]
 
     bmap.applyMeta()
     return bmap
