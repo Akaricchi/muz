@@ -8,6 +8,7 @@ import muz
 import muz.vfs
 import muz.beatmap
 
+name = "μz beatmap"
 extensions = ["beatmap"]
 locations = ["beatmaps"]
 

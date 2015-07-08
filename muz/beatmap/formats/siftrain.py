@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 import json
 import muz.beatmap
 
+name = "SIFTrain beatmap"
 extensions = ["rs"]
 locations = ["beatmaps/datafiles"]
 

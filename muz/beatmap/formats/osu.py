@@ -5,6 +5,7 @@ import re
 import muz
 import muz.beatmap
 
+name = "osu! beatmap"
 extensions = ["osu"]
 locations = ["beatmaps"]
 

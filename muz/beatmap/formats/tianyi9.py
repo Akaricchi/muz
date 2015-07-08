@@ -14,6 +14,7 @@ config = muz.config.get(__name__, {
 })
 log = logging.getLogger(__name__)
 
+name = "LLpractice beatmap"
 extensions = ["json"]
 locations = ["beatmaps"]
 

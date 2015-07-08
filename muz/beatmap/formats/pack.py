@@ -10,6 +10,7 @@ import muz.beatmap
 
 from StringIO import StringIO
 
+name = "Zipped pack file"
 extensions = ["pk3", "osz"]
 locations = ["."]
 
