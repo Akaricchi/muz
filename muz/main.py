@@ -131,6 +131,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('--no-holds', action='store_true', default=False,
                    help='replace each hold note with two hit notes')
 
+    g.add_argument('--holdify', action='store_true', default=False,
+                   help='group all notes into holds where possible')
+
     g.add_argument('-i', '--insane', action='store_true', default=False,
                    help='add lots of extra notes')
 

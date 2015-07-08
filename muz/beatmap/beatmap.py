@@ -268,6 +268,30 @@ class Beatmap(collections.MutableSequence):
 
         self.fix()
 
+    def holdify(self):
+        newNotes = []
+        lastNotes = {}
+
+        for note in self:
+            last = lastNotes.get(note.band)
+            if last is None:
+                n = Note(note.band, note.hitTime, 0)
+                lastNotes[note.band] = n
+                newNotes.append(n)
+            else:
+                last.holdTime = note.hitTime - last.hitTime
+
+                if note.holdTime:
+                    n = Note(note.band, note.hitTime + note.holdTime, 0)
+                    lastNotes[note.band] = n
+                    newNotes.append(n)
+                else:
+                    lastNotes[note.band] = None
+
+        del self.notelist[:]
+        self.notelist.extend(newNotes)
+        self.fix()
+
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)
         #self.applyMeta()

@@ -174,6 +174,9 @@ class Game(object):
             if config["randomize"] or muz.main.globalArgs.random:
                 self.beatmap.randomize()
 
+            if config["holdify"] or muz.main.globalArgs.holdify:
+                self.beatmap.holdify()
+
         self.music.play(self.timeOffset)
 
         self.time = self.timeOffset

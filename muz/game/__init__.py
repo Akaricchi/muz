@@ -17,6 +17,7 @@ config = muz.config.get(__name__, {
     "interpolate-music-time"        :       True,
     "randomize"                     :       False,
     "no-holds"                      :       False,
+    "holdify"                       :       False,
     "insane"                        :       False,
 })
 
