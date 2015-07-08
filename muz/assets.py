@@ -29,10 +29,11 @@ def music(name, root=None):
     oname = name
     name, ext = os.path.splitext(name)
 
-    for ext in muz.main.frontend.supportedMusicFormats:
-        try:
-            return vfs.locate("%s.%s" % (name, ext), root=root).preferAlternative()
-        except Exception:
-            log.debug("loading music %s from %s.%s failed", name, name, ext, exc_info=True)
+    if muz.main.frontend is not None:
+        for ext in muz.main.frontend.supportedMusicFormats:
+            try:
+                return vfs.locate("%s.%s" % (name, ext), root=root).preferAlternative()
+            except Exception:
+                log.debug("loading music %s from %s.%s failed", name, name, ext, exc_info=True)
 
     return vfs.locate(oname, root=root).preferAlternative()
