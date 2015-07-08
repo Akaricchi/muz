@@ -2,6 +2,12 @@
 import os
 import collections
 import logging
+import code
+import sys
+import Queue
+import threading
+import string
+
 log = logging.getLogger(__name__)
 
 import pygame
@@ -84,6 +90,11 @@ class Clock(muz.frontend.Clock):
 class QuitRequest(Exception):
     pass
 
+class Command(object):
+    def __init__(self, cmd, isRelease):
+        self.cmd = cmd
+        self.isRelease = isRelease
+
 class Frontend(muz.frontend.Frontend):
     def __init__(self):
         self._music = Music()
@@ -92,6 +103,10 @@ class Frontend(muz.frontend.Frontend):
         self.activity = None
         self.screen = None
         self.gameRendererClass = muz.frontend.pygame.gamerenderer.GameRenderer
+        self.consoleQueue = Queue.Queue()
+        self.consoleSyncQueue = Queue.Queue()
+        self.consoleBuffer = ""
+        self.consoleLocals = {}
 
     @property
     def supportedMusicFormats(self):
@@ -232,6 +247,7 @@ class Frontend(muz.frontend.Frontend):
 
     def makeDefaultConfigRoot(self):
         return {
+            "console" : True,
             "audio"   : self.makeDefaultConfigAudio(),
             "video"   : self.makeDefaultConfigVideo(),
             "keymaps" : self.makeDefaultConfigKeymaps(),
@@ -269,6 +285,7 @@ class Frontend(muz.frontend.Frontend):
         if not self.config["video"]["render-text"]:
             self.renderText = self.renderTextDummy
 
+        self.useConsole = self.config["console"]
         self.dummySurf = None
         self.initKeymap()
 
@@ -311,7 +328,7 @@ class Frontend(muz.frontend.Frontend):
         pygame.mixer.music.set_volume(self.config["audio"]["music-volume"])
         return self._music
 
-    def command(self, cmd, isRelease):
+    def command(self, cmd, isRelease=False):
         log.debug("command: %s (%s)", cmd, "release" if isRelease else "press")
 
         if cmd == "quit":
@@ -335,6 +352,106 @@ class Frontend(muz.frontend.Frontend):
             if event.key in self.keymap:
                 self.command(self.keymap[event.key], True)
 
+    def initConsole(self, conlocals):
+        if not self.useConsole:
+            return
+
+        self.consoleLocals = conlocals
+
+        try:
+            import readline
+        except ImportError:
+            readline = None
+            log.warning("readline not available")
+        else:
+            import rlcompleter
+            readline.parse_and_bind("tab: complete")
+
+        def worker():
+            p = "[%s] " % muz.main.NAME
+
+            while True:
+                self.consoleSyncQueue.get()
+
+                try:
+                    i = raw_input(p + ("... " if self.consoleBuffer else ">>> "))
+                except EOFError:
+                    print
+                    self.consoleQueue.put(QuitRequest)
+                else:
+                    if not self.consoleBuffer:
+                        if i.startswith('!'):
+                            i = Command(i[1:], False)
+                        elif i.startswith('~'):
+                            i = Command(i[1:], True)
+
+                    self.consoleQueue.put(i)
+
+                self.consoleSyncQueue.task_done()
+
+        if readline is not None:
+            @readline.set_completer
+            def completer(text, state, oldcomp=readline.get_completer()):
+                stext = text.strip()
+                if not stext:
+                    if state:
+                        return None
+                    return "\t"
+
+                l = tuple(n for n in self.consoleLocals if n.startswith(stext))
+                if l:
+                    if len(l) > state:
+                        return l[state]
+                    return None
+
+                if oldcomp:
+                    return oldcomp(text, state)
+
+        self.consoleSyncQueue.put(True)
+        thread = threading.Thread(name="console", target=worker)
+        thread.daemon = True
+        thread.start()
+
+    def handleConsole(self):
+        if not self.useConsole:
+            return
+
+        f = self.consoleLocals.get("__frame__")
+        if f is not None:
+            f()
+
+        try:
+            inp = self.consoleQueue.get(block=False)
+        except Queue.Empty:
+            return
+
+        self.consoleQueue.task_done()
+
+        if inp is QuitRequest:
+            raise QuitRequest
+
+        if isinstance(inp, Command):
+            self.command(inp.cmd, inp.isRelease)
+            self.consoleSyncQueue.put(True)
+            return
+
+        self.consoleBuffer += inp
+
+        try:
+            c = code.compile_command(self.consoleBuffer)
+            if c is None:
+                self.consoleBuffer += "\n"
+            else:
+                exec c in self.consoleLocals
+                self.consoleBuffer = ""
+        except (QuitRequest, SystemExit, EOFError):
+            raise QuitRequest
+        except Exception as e:
+            log.exception("console error: %s", e)
+            self.consoleBuffer = ""
+
+        self.consoleSyncQueue.put(True)
+
     def gameLoop(self, activity):
         renderer = self.gameRendererClass(activity, self.config["gamerenderer"])
         self.activity = activity
@@ -343,19 +460,33 @@ class Frontend(muz.frontend.Frontend):
         activity.clock = clock
         screen = self.screen
 
+        self.initConsole({
+            "__name__"  : "__console__",
+            "__frame__" : None,
+            "muz"       : muz,
+            "vfs"       : muz.vfs,
+            "game"      : activity,
+            "clock"     : clock,
+            "screen"    : screen,
+            "frontend"  : self,
+            "pygame"    : pygame,
+            "cmd"       : self.command,
+        })
+
         try:
             while True:
+                self.handleConsole()
+
                 for event in pygame.event.get():
-                    try:
-                        self.handleEvent(event)
-                    except QuitRequest:
-                        return
+                    self.handleEvent(event)
 
                 activity.update()
                 renderer.draw(screen)
 
                 pygame.display.flip()
                 clock.tick()
+        except QuitRequest:
+            return
         finally:
             self._music.playing = False
 
