@@ -29,6 +29,10 @@ def initUserDir():
 
 def initvfs():
     vfs.root.clear()
+
+    if globalArgs.no_vfs:
+        return
+
     vfs.root.loadDataDirs(basedir, userdir, *globalArgs.extradirs)
 
     for pack in globalArgs.extrapacks:
@@ -53,6 +57,9 @@ def handleGeneralArgs(parser, argv, namespace):
     
     g.add_argument('--userdir', action="store", default=userdir,
                    help="set the location of user-supplied game data (e.g. beatmaps) (default: %(default)s)")
+
+    g.add_argument('--no-vfs', action='store_true', default=False,
+                   help="do not initialize the virtual filesystem")
 
     g.add_argument('-d', '--dir', metavar='DIR', dest='extradirs', action='append', default=[],
                    help="add a directory to search for game data in (including beatmaps), can be specified multiple times")
