@@ -94,7 +94,9 @@ class Beatmap(collections.MutableSequence):
 
     @property
     def musicFile(self):
-        return self._musicFile
+        if self._musicFile is not None:
+            return self._musicFile
+        return self.musicVfsNode.open()
 
     @property
     def musicVfsNode(self):
@@ -111,7 +113,7 @@ class Beatmap(collections.MutableSequence):
             log.debug("musicVfsNode: locate failed", exc_info=True)
 
         if self.vfsNode is not None and self.vfsNode.realPathExists:
-            return vfs.RealFile(os.path.dirname(self.vfsNode.realPath)).locate(self.music).preferAlternative()
+            return vfs.RealFile(os.path.join(os.path.dirname(self.vfsNode.realPath), self.music)).preferAlternative()
 
         raise RuntimeError("music file %s could not be located" % self.music)
 
