@@ -1,7 +1,7 @@
 
 from __future__ import absolute_import
 
-import logging, re
+import logging, re, os
 log = logging.getLogger(__name__)
 
 import json
@@ -16,11 +16,11 @@ locations = ["beatmaps/datafiles"]
 # https://github.com/kbz/beatmap-repo/wiki/Beatmap-Format
 #
 
-FLAG_NORMAL       = 1
+FLAG_NORMAL       = 1  # used only by the exporter
 FLAG_FILLED       = 2  # not used
 FLAG_HOLD         = 4
 FLAG_EXCL         = 8  # not used
-FLAG_SIMULT_START = 16 # not used
+FLAG_SIMULT_START = 16 # used only by the exporter
 FLAG_SIMULT_END   = 32 # not used even by SIF/SIFTrain apparently
 
 ID_TO_DIFFICULTY = {
@@ -46,13 +46,16 @@ def difficultyToNoterate(d):
     }.get(d, 1.0)
 
 filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
+musicFilePattern = re.compile(r'.*\.(mp3|ogg|wav)$')
 
 def read(fobj, filename, bare=False, options=None):
     raw = fobj.read()
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
 
-    if filename is not None:
+    if "music_file" in data:
+        mus = data["music_file"]
+    elif filename is not None:
         match = filenamePattern.findall(filename)
         if match:
             mus = match[0][0] + '.ogg'
@@ -85,10 +88,14 @@ def read(fobj, filename, bare=False, options=None):
         bmap.meta["siftrain.song_name"] = data["song_name"]
 
     if "difficulty" in data:
-        try:
-            bmap.meta["Beatmap.Variant"] = ID_TO_DIFFICULTY[data["difficulty"]]
-        except (KeyError, TypeError):
-            log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
+        if "difficulty_name" in data:
+            bmap.meta["Beatmap.Variant"] = data["difficulty_name"]
+            bmap.meta["siftrain.difficulty_name"] = data["difficulty_name"]
+        else:
+            try:
+                bmap.meta["Beatmap.Variant"] = ID_TO_DIFFICULTY[data["difficulty"]]
+            except (KeyError, TypeError):
+                log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
 
         bmap.meta["siftrain.difficulty"] = data["difficulty"]
         bmap.noterate = difficultyToNoterate(data["difficulty"])
@@ -100,6 +107,9 @@ def read(fobj, filename, bare=False, options=None):
     if "rank_info" in data:
         for rank in data["rank_info"]:
             bmap.meta["siftrain.rank_info.%i.rank_max" % rank["rank"]] = rank["rank_max"]
+
+    if "lead_in" in data:
+        bmap.meta["siftrain.lead_in"] = data["lead_in"]
 
     bmap.applyMeta()
     return bmap
@@ -113,11 +123,20 @@ def write(bmap, fobj, options=None):
         "song_name"         : meta["siftrain.song_name"] or meta["Music.Name"] or meta["Music.Name.ASCII"],
         "difficulty"        : int(meta["siftrain.difficulty"])
                               if meta["siftrain.difficulty"] else
-                              DIFFICULTY_TO_ID[meta["Beatmap.Variant"]],
+                              DIFFICULTY_TO_ID[meta["Beatmap.Variant"].lower().capitalize()],
         "song_info"         : [{
             "notes"         : notes
         }]
     }
+
+
+    if meta["siftrain.difficulty_name"]:
+        root["difficulty_name"] = meta["siftrain.difficulty_name"]
+    elif meta["Beatmap.Variant"] and meta["Beatmap.Variant"] != ID_TO_DIFFICULTY[root["difficulty"]]:
+        root["difficulty_name"] = meta["Beatmap.Variant"]
+
+    if bmap.meta["siftrain.lead_in"]:
+        root["lead_in"] = float(meta["siftrain.lead_in"])
 
     p = None
     pn = None
@@ -146,8 +165,6 @@ def write(bmap, fobj, options=None):
             "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
         } for i in xrange(5, 0, -1)]
 
-    json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))
-
     m = filenamePattern.findall(bmap.name + ".rs")
     if m:
         musname = m[0][0]
@@ -155,5 +172,13 @@ def write(bmap, fobj, options=None):
     else:
         musname = bmap.name
         newname = "%s_%s" % (bmap.name, ID_TO_DIFFICULTY[root["difficulty"]].lower())
+
+    if meta["siftrain.music_file"]:
+        musname = root["music_file"] = meta["siftrain.music_file"]
+
+        if musicFilePattern.match(musname):
+            musname = os.path.splitext(musname)[0]
+
+    json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))
 
     return newname, "%s/%s.%s" %(locations[0], newname, extensions[0]), "beatmaps/soundfiles/%s" % musname
