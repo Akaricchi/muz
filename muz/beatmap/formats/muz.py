@@ -61,6 +61,8 @@ def read(fobj, filename, bare=False, options=None):
                             bmap.music = args[2]
 
                         essentialParsed = True
+                    elif s == "rate":
+                        bmap.noterate = float(args)
                     elif s == "note":
                         if not bare and essentialParsed:
                             args = args.split(' ')

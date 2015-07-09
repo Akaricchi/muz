@@ -76,6 +76,7 @@ class Beatmap(collections.MutableSequence):
         self.music = music
         self._musicFile = musicFile
         self.vfsNode = vfsNode
+        self.noterate = 1.0
 
         try:
             self.numbands = int(numbands)
@@ -90,7 +91,9 @@ class Beatmap(collections.MutableSequence):
             self.meta.update(meta)
 
     def clone(self):
-        return Beatmap(self.name, self.numbands, source=self, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
+        bmap = Beatmap(self.name, self.numbands, source=self, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
+        bmap.noterate = self.noterate
+        return bmap
 
     @property
     def musicFile(self):

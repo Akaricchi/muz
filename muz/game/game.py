@@ -56,11 +56,13 @@ class Game(object):
         self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
         self.removeNotes = []
 
+
         self.defaultNoterate = config["noterate"]
         self.maxNoterate = config["max-noterate"]
         self.noteratePerCombo = config["noterate-per-combo"]
         self.noterateGain = config["noterate-gain-speed"]
-        self.noterate = self.defaultNoterate
+        self.ignoreBeatmapNoterate = config["ignore-beatmap-noterate"]
+        self._noterate = self.defaultNoterate
 
         self.hitSound = frontend.loadSound(muz.assets.sound("hit"))
         self.releaseSound = frontend.loadSound(muz.assets.sound("release"))
@@ -103,6 +105,12 @@ class Game(object):
 
         if not config["start-paused"]:
             self.start()
+
+    @property
+    def noterate(self):
+        if self.ignoreBeatmapNoterate:
+            return self._noterate
+        return self._noterate * self.beatmap.noterate
 
     def initCommands(self):
         nullfunc = lambda *a: None
@@ -367,8 +375,8 @@ class Game(object):
 
         deltatime = self.time - self.oldTime
 
-        self.noterate = clamp(0,
-            self.noterate + (self.defaultNoterate + self.stats.combo * self.noteratePerCombo - self.noterate) *
+        self._noterate = clamp(0,
+            self._noterate + (self.defaultNoterate + self.stats.combo * self.noteratePerCombo - self._noterate) *
             (deltatime / 1000.0) * self.noterateGain,
         self.maxNoterate)
 

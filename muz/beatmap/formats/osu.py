@@ -4,10 +4,36 @@ from __future__ import absolute_import
 import re
 import muz
 import muz.beatmap
+import muz.util
+import math
 
 name = "osu! beatmap"
 extensions = ["osu"]
 locations = ["beatmaps"]
+
+ARTable = [
+    1800,
+    1680,
+    1560,
+    1440,
+    1320,
+    1200,
+    1050,
+     900,
+     750,
+     600,
+     450
+]
+
+def ARToNoterate(ar):
+    ar = muz.util.clamp(0, ar, len(ARTable) - 1)
+    iar = int(ar)
+
+    low  = ARTable[iar]
+    high = ARTable[int(math.ceil(ar))]
+    msec = low + (high - low) * (ar - iar)
+
+    return 1000.0 / msec
 
 patternSection = re.compile(r'^\[([a-zA-Z0-9]+)\]$')
 patternKeyVal = re.compile(r'^([a-zA-Z0-9]+)\s*:\s*(.*)$')
@@ -76,6 +102,8 @@ def read(fobj, filename, bare=False, options=None):
                     elif section == "Difficulty":
                         if key == "CircleSize":
                             bmap.numbands = int(float(val))
+                        elif key == "ApproachRate":
+                            bmap.noterate = ARToNoterate(float(val))
 
                     bmap.meta["osu.%s.%s" % (section, key)] = val
                     buf = ""

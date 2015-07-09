@@ -37,6 +37,14 @@ DIFFICULTY_TO_ID = {
     "Expert" : 4,
 }
 
+def difficultyToNoterate(d):
+    return 1.0 / {
+        1: 1.6,
+        2: 1.3,
+        3: 1.0,
+        4: 0.8,
+    }.get(d, 1.0)
+
 filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
 
 def read(fobj, filename, bare=False, options=None):
@@ -83,9 +91,11 @@ def read(fobj, filename, bare=False, options=None):
             log.warning("unknown difficulty id %s" % repr(data["difficulty"]))
 
         bmap.meta["siftrain.difficulty"] = data["difficulty"]
+        bmap.noterate = difficultyToNoterate(data["difficulty"])
 
     if "notes_speed" in songinfo:
         bmap.meta["siftrain.song_info.notes_speed"] = songinfo["notes_speed"]
+        bmap.noterate = 1.0 / songinfo["notes_speed"]
 
     if "rank_info" in data:
         for rank in data["rank_info"]:
