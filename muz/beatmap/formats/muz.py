@@ -31,7 +31,7 @@ def read(fobj, filename, bare=False, options=None):
         if not byte:
             break
 
-        if byte in ('\r', '\n'):
+        if byte in (b'\r', b'\n'):
             if buf:
                 buf = buf.decode('utf-8')
 

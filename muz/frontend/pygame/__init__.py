@@ -495,9 +495,9 @@ class Frontend(muz.frontend.Frontend):
 
     def setTitle(self, title):
         if title:
-            pygame.display.set_caption(("%s - %s" % (muz.NAME, title)).encode('utf-8'))
+            pygame.display.set_caption("%s - %s" % (muz.NAME, title))
         else:
-            pygame.display.set_caption(muz.NAME.encode('utf-8'))
+            pygame.display.set_caption(muz.NAME)
 
     title = property(getTitle, setTitle)
 

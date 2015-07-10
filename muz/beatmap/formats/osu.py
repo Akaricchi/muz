@@ -50,7 +50,7 @@ def read(fobj, filename, bare=False, options=None):
         if not byte:
             break
 
-        if byte in ('\r', '\n'):
+        if byte in (b'\r', b'\n'):
             buf = buf.decode('utf-8').strip()
 
             if not buf or buf.startswith("//"):

@@ -120,8 +120,8 @@ class GameRenderer(object):
             colorcount = len(colors)
             bandcount = len(self.bands)
 
-            for i in (a * max(1, int(round(colorcount / float(bandcount)))) for a in range(bandcount)):
-                note = colors[(i - max(0, (bandcount - colorcount) / 2)) % colorcount]
+            for i in (a * max(1, int(round(colorcount / bandcount))) for a in range(bandcount)):
+                note = colors[(i - max(0, (bandcount - colorcount) // 2)) % colorcount]
                 beam = mix(note, nbb["hold-mixin"], nbb["hold-mixin-factor"])
 
                 self.notecolors.append(pygame.Color(*note))
