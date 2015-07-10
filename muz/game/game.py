@@ -169,27 +169,38 @@ class Game(object):
     def resetScore(self):
         self.stats = Stats()
 
+    def reloadBeatmap(self):
+        self.beatmap = self.originalBeatmap.clone()
+
+        if muz.main.globalArgs.beatmap_offset is not None:
+            offs = muz.main.globalArgs.beatmap_offset
+        else:
+            offs = config["beatmap-offset"]
+
+        if offs:
+            self.beatmap.shift(offs)
+
+        if config["no-holds"] or muz.main.globalArgs.no_holds:
+            self.beatmap.stripHolds()
+
+        if config["insane"] or muz.main.globalArgs.insane:
+            self.beatmap.insanify()
+
+        if config["randomize"] or muz.main.globalArgs.random:
+            self.beatmap.randomize()
+
+        if config["holdify"] or muz.main.globalArgs.holdify:
+            self.beatmap.holdify()
+
+        if config["shuffle-bands"] or muz.main.globalArgs.shuffle_bands:
+            self.beatmap.shuffleBands()
+
+        if config['mirror-bands'] or muz.main.globalArgs.mirror_bands:
+            self.beatmap.mirrorBands()        
+
     def start(self, refreshBeatmap=True):
         if refreshBeatmap:
-            self.beatmap = self.originalBeatmap.clone()
-
-            if config["no-holds"] or muz.main.globalArgs.no_holds:
-                self.beatmap.stripHolds()
-
-            if config["insane"] or muz.main.globalArgs.insane:
-                self.beatmap.insanify()
-
-            if config["randomize"] or muz.main.globalArgs.random:
-                self.beatmap.randomize()
-
-            if config["holdify"] or muz.main.globalArgs.holdify:
-                self.beatmap.holdify()
-
-            if config["shuffle-bands"] or muz.main.globalArgs.shuffle_bands:
-                self.beatmap.shuffleBands()
-
-            if config['mirror-bands'] or muz.main.globalArgs.mirror_bands:
-                self.beatmap.mirrorBands()
+            self.reloadBeatmap()
 
         self.music.play(self.timeOffset)
 

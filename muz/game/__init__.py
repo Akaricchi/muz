@@ -22,6 +22,7 @@ config = muz.config.get(__name__, {
     "shuffle-bands"                 :       False,
     "mirror-bands"                  :       False,
     "ignore-beatmap-noterate"       :       False,
+    "beatmap-offset"                :       0,
 })
 
 log = logging.getLogger(__name__)
