@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import logging, re, os
 log = logging.getLogger(__name__)
@@ -160,10 +160,10 @@ def write(bmap, fobj, options=None):
     if meta["siftrain.song_info.notes_speed"]:
         root["song_info"][0]["notes_speed"] = meta["siftrain.song_info.notes_speed"]
 
-    if any(meta["siftrain.rank_info.%i.rank_max" % i] for i in xrange(5, 0, -1)):
+    if any(meta["siftrain.rank_info.%i.rank_max" % i] for i in range(5, 0, -1)):
         root["rank_info"] = [{
             "rank_max"      : int(meta["siftrain.rank_info.%i.rank_max" % i]),
-        } for i in xrange(5, 0, -1)]
+        } for i in range(5, 0, -1)]
 
     m = filenamePattern.findall(bmap.name + ".rs")
     if m:

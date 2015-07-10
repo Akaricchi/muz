@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import math
 import pygame
@@ -93,7 +93,7 @@ class GameRenderer(object):
         self.config = config
 
         self.showTimingHints = config["show-timing-hints"]
-        self.bands = tuple(Band() for i in xrange(len(self.game.bands)))
+        self.bands = tuple(Band() for i in range(len(self.game.bands)))
         self.drawHits = []
         self.drawnScore = -1
         self.drawnCombo = -1
@@ -120,7 +120,7 @@ class GameRenderer(object):
             colorcount = len(colors)
             bandcount = len(self.bands)
 
-            for i in (a * max(1, int(round(colorcount / float(bandcount)))) for a in xrange(bandcount)):
+            for i in (a * max(1, int(round(colorcount / float(bandcount)))) for a in range(bandcount)):
                 note = colors[(i - max(0, (bandcount - colorcount) / 2)) % colorcount]
                 beam = mix(note, nbb["hold-mixin"], nbb["hold-mixin-factor"])
 
@@ -179,7 +179,7 @@ class GameRenderer(object):
         self.noteHitSurf = pygame.Surface((self.bandWidth, self.targetoffs + 5))
         self.noteHitSurf.fill(colors["highlight"])
 
-        for band in xrange(game.beatmap.numbands):
+        for band in range(game.beatmap.numbands):
             self.bands[band].offset = (band * self.bandWidth) / gapFactor + bandShift
 
         self.scoreInfoColors = {
@@ -201,7 +201,7 @@ class GameRenderer(object):
             self.gradients = []
             for num, band in enumerate(self.bands):
                 gradlist = [None]
-                for a in xrange(255):
+                for a in range(255):
                     c = self.notecolors[num]
                     g = gradients.vertical((1, int((bounds.height - self.targetoffs) / 5)),
                                            (c.r, c.g, c.b, a + 1), (c.r, c.g, c.b, 0))

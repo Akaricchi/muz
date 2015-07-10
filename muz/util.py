@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import string, logging, sys, os
 from functools import wraps
@@ -33,7 +33,7 @@ def safeFilename(s):
     return ''.join(c for c in s if c in FILENAMECHARS)
 
 class ColoredFormatter(logging.Formatter):
-    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
 
     RESET_SEQ = "\033[0m"
     COLOR_SEQ = "\033[1;%dm"

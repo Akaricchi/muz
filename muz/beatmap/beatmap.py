@@ -1,8 +1,8 @@
 
-from __future__ import absolute_import
+
 
 import collections, os, random
-from StringIO import StringIO
+from io import StringIO
 
 import muz
 import muz.assets
@@ -47,10 +47,10 @@ class Metadata(collections.MutableMapping):
     def __getitem__(self, key):
         if key in self.store:
             return self.store[key]
-        return u""
+        return ""
 
     def __setitem__(self, key, value):
-        if not isinstance(value, unicode):
+        if not isinstance(value, str):
             if not isinstance(value, str):
                 value = str(value)
         
@@ -233,17 +233,17 @@ class Beatmap(collections.MutableSequence):
         self.fix()
 
         mindist = self.minimalNoteDistance
-        busy = [0 for band in xrange(self.numbands)]
+        busy = [0 for band in range(self.numbands)]
 
         for note in self:
-            note.band = random.choice([i for i in xrange(self.numbands) if note.hitTime - busy[i] >= 0])
+            note.band = random.choice([i for i in range(self.numbands) if note.hitTime - busy[i] >= 0])
             busy[note.band] = note.hitTime + note.holdTime + mindist
 
     def insanify(self):
         self.fix()
 
         mindist = self.minimalNoteDistance
-        busy = [0 for band in xrange(self.numbands)]
+        busy = [0 for band in range(self.numbands)]
 
         prev = None
         for note in tuple(self):
@@ -251,7 +251,7 @@ class Beatmap(collections.MutableSequence):
                 if prev is not None and note.hitTime - (prev.hitTime + prev.holdTime * i) >= mindist * 2:
                     h = prev.hitTime + prev.holdTime * i + (note.hitTime - (prev.hitTime + prev.holdTime * i)) / 2
                     try:
-                        b = random.choice([i for i in xrange(self.numbands) if h - busy[i] >= 0])
+                        b = random.choice([i for i in range(self.numbands) if h - busy[i] >= 0])
                     except IndexError:
                         pass
                     else:
@@ -302,12 +302,12 @@ class Beatmap(collections.MutableSequence):
             note.band = order[note.band]
 
     def shuffleBands(self):
-        o = range(self.numbands)
+        o = list(range(self.numbands))
         random.shuffle(o)
         self.orderBands(o)
 
     def mirrorBands(self):
-        self.orderBands(range(self.numbands)[::-1])
+        self.orderBands(list(range(self.numbands))[::-1])
 
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)
@@ -315,7 +315,7 @@ class Beatmap(collections.MutableSequence):
 
 class BeatmapBuilder(object):
     def __init__(self, mapname, numbands, msrclist, meta=None):
-        if isinstance(msrclist, str) or isinstance(msrclist, unicode):
+        if isinstance(msrclist, str) or isinstance(msrclist, str):
             msrclist = [msrclist]
 
         musfile = None
@@ -397,7 +397,7 @@ def load(name, bare=False, options=None):
 
     log.info("attempting to load beatmap %s", repr(name))
 
-    for ext, importer in muz.beatmap.formats.importersByExt.items():
+    for ext, importer in list(muz.beatmap.formats.importersByExt.items()):
         if wantext is not None and ext != wantext:
             continue
 
@@ -438,7 +438,7 @@ def load(name, bare=False, options=None):
 def nameFromPath(path):
     path = vfs.normalizePath(path)
 
-    for ext, importer in muz.beatmap.formats.importersByExt.items():
+    for ext, importer in list(muz.beatmap.formats.importersByExt.items()):
         if not path.endswith("." + ext):
             continue
 

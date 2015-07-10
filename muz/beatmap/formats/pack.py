@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import os, zipfile, logging
 log = logging.getLogger(__name__)
@@ -8,7 +8,7 @@ import muz
 import muz.vfs
 import muz.beatmap
 
-from StringIO import StringIO
+from io import StringIO
 
 name = "Zipped pack file"
 extensions = ["pk3", "osz"]

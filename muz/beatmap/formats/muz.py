@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+
 
 import logging, shutil, os
 log = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ def write(bmap, fobj, options=None):
                 (muz.NAME, muz.VERSION, len(bmap), bmap.numbands, mus, bmap.noterate)
                ).encode('utf-8'))
 
-    for key, val in sorted(bmap.meta.items(), key=lambda p: p[0]):
+    for key, val in sorted(list(bmap.meta.items()), key=lambda p: p[0]):
         fobj.write("meta %s %s\n" % (key, val.encode('utf-8')))
 
     for note in bmap:

@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import importlib, pkgutil
 from abc import *
@@ -14,16 +14,12 @@ def iter():
         if "." not in modname:
             yield modname
 
-class Sound(object):
-    __metaclass__ = ABCMeta
-
+class Sound(object, metaclass=ABCMeta):
     @abstractmethod
     def play(self):
         pass
 
-class Music(object):
-    __metaclass__ = ABCMeta
-
+class Music(object, metaclass=ABCMeta):
     def getPlaying(self): pass
     def setPlaying(self, v): pass
     playing = abstractproperty(getPlaying, setPlaying)
@@ -40,9 +36,7 @@ class Music(object):
     def setPosition(self, v): pass
     position = abstractproperty(getPosition, setPosition)
 
-class Clock(object):
-    __metaclass__ = ABCMeta
-
+class Clock(object, metaclass=ABCMeta):
     @abstractproperty
     def deltaTime(self):
         pass
@@ -51,9 +45,7 @@ class Clock(object):
     def fps(self):
         pass
 
-class Frontend(object):
-    __metaclass__ = ABCMeta
-
+class Frontend(object, metaclass=ABCMeta):
     @abstractproperty
     def supportedMusicFormats(self):
         pass

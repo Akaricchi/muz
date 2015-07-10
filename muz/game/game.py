@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 
 import collections
 
@@ -53,7 +53,7 @@ class Game(object):
         self.clock = None
         self.time = -1
         self.oldTime = self.time
-        self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
+        self.bands = [Band(band) for band in range(self.beatmap.numbands)]
         self.removeNotes = []
 
 

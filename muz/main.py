@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+
 
 import os, sys, logging, argparse
 
@@ -13,8 +13,9 @@ import muz.game as game
 import muz.util
 
 from muz import _config as config
+import imp
 
-NAME = u"μz"
+NAME = "μz"
 VERSION = "0.01-prepreprealpha"
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
@@ -102,7 +103,7 @@ def handleGeneralArgs(parser, argv, namespace):
 
         l = vfs.locate(n.listvfspath)
         for key in sorted(l.keys()):
-            print "%s%s" % (key, vfs.VPATH_SEP if l[key].isDir else "")
+            print("%s%s" % (key, vfs.VPATH_SEP if l[key].isDir else ""))
 
         exit(0)
 
@@ -117,8 +118,8 @@ def handleGeneralArgs(parser, argv, namespace):
             else:
                 return b.name
 
-        print "\n".join(s + ((": %s" % getname(s)) if n.listbeatmaps > 1 else "")
-            for s in sorted(muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()) if s)
+        print("\n".join(s + ((": %s" % getname(s)) if n.listbeatmaps > 1 else "")
+            for s in sorted(muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()) if s))
         exit(0)
 
     return (n, a)
@@ -224,7 +225,7 @@ def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
     else:
         frontend = None
 
-    reload(sys)
+    imp.reload(sys)
     sys.setdefaultencoding("utf-8")
     initUserDir()
     loadConfig(requireLogLevel=requireLogLevel)

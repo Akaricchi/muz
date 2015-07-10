@@ -1,8 +1,8 @@
 
-from __future__ import absolute_import
 
-import json, urllib2, cookielib, shutil, os, logging, sys
-from StringIO import StringIO
+
+import json, urllib.request, urllib.error, urllib.parse, http.cookiejar, shutil, os, logging, sys
+from io import StringIO
 
 import muz
 import muz.util
@@ -53,11 +53,11 @@ def read(fobj, filename, bare=False, options=None):
 def obtain(liveid):
     api = "https://m.tianyi9.com/API"
 
-    cookies = cookielib.CookieJar()
-    opener = urllib2.build_opener(
-        urllib2.HTTPHandler(),
-        urllib2.HTTPSHandler(),
-        urllib2.HTTPCookieProcessor(cookies)
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPHandler(),
+        urllib.request.HTTPSHandler(),
+        urllib.request.HTTPCookieProcessor(cookies)
     )
 
     log.info("obtaining a session cookie...")
@@ -65,7 +65,7 @@ def obtain(liveid):
 
     log.info("downloading metadata...")
     meta = json.load(opener.open("%s/getlive?live_id=%s" % (api, liveid)))["content"]
-    print meta
+    print(meta)
     name = muz.util.safeFilename(meta["live_name"])
     pakname = "beatmap-tianyi9-%s%s%s" % (name, "-" if name else "", liveid)
 

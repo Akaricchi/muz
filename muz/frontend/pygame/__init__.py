@@ -4,7 +4,7 @@ import collections
 import logging
 import code
 import sys
-import Queue
+import queue
 import threading
 import string
 
@@ -103,8 +103,8 @@ class Frontend(muz.frontend.Frontend):
         self.activity = None
         self.screen = None
         self.gameRendererClass = muz.frontend.pygame.gamerenderer.GameRenderer
-        self.consoleQueue = Queue.Queue()
-        self.consoleSyncQueue = Queue.Queue()
+        self.consoleQueue = queue.Queue()
+        self.consoleSyncQueue = queue.Queue()
         self.consoleBuffer = ""
         self.consoleLocals = {}
 
@@ -291,9 +291,9 @@ class Frontend(muz.frontend.Frontend):
 
     def initKeymap(self, submap=None):
         # pygame wtf, why is this not provided by default?
-        keyLookupTable = {pygame.key.name(v).lower(): v for k, v in pygame.constants.__dict__.items() if k.startswith("K_")}
+        keyLookupTable = {pygame.key.name(v).lower(): v for k, v in list(pygame.constants.__dict__.items()) if k.startswith("K_")}
 
-        lower = lambda d: {k.lower(): v.lower() for k, v in d.items()}
+        lower = lambda d: {k.lower(): v.lower() for k, v in list(d.items())}
 
         self.keymap = collections.defaultdict(lambda: nullfunc)
         keymap = lower(self.config["keymaps"]["global"])
@@ -304,7 +304,7 @@ class Frontend(muz.frontend.Frontend):
             except KeyError:
                 log.warning("subkeymap %s doesn't exist", submap)
 
-        for key, action in keymap.items():
+        for key, action in list(keymap.items()):
             try:
                 sdlkey = keyLookupTable[key]
             except KeyError:
@@ -374,9 +374,9 @@ class Frontend(muz.frontend.Frontend):
                 self.consoleSyncQueue.get()
 
                 try:
-                    i = raw_input(p + ("... " if self.consoleBuffer else ">>> "))
+                    i = input(p + ("... " if self.consoleBuffer else ">>> "))
                 except EOFError:
-                    print
+                    print()
                     self.consoleQueue.put(QuitRequest)
                 else:
                     if not self.consoleBuffer:
@@ -422,7 +422,7 @@ class Frontend(muz.frontend.Frontend):
 
         try:
             inp = self.consoleQueue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             return
 
         self.consoleQueue.task_done()
@@ -442,7 +442,7 @@ class Frontend(muz.frontend.Frontend):
             if c is None:
                 self.consoleBuffer += "\n"
             else:
-                exec c in self.consoleLocals
+                exec(c, self.consoleLocals)
                 self.consoleBuffer = ""
         except (QuitRequest, SystemExit, EOFError):
             raise QuitRequest
