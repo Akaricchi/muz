@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import os, sys, logging, argparse
+from itertools import ifilter as filter
 
 import muz
 import muz.frontend
@@ -117,8 +118,9 @@ def handleGeneralArgs(parser, argv, namespace):
             else:
                 return b.name
 
-        print "\n".join(s + ((": %s" % getname(s)) if n.listbeatmaps > 1 else "")
-            for s in sorted(muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()) if s)
+        for s in sorted(filter(None, (muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()))):
+            print s + ": %s" % (getname(s) if n.listbeatmaps > 1 else "")
+
         exit(0)
 
     return (n, a)
