@@ -4,7 +4,7 @@
 μz also features a simple (but useful) tool to assist with beatmap creation, BeatmapBuilder. Currently, it can export beatmaps in μz and SIFTrain formats.
 
 # Installation
-You must have [Python 2.7](https://www.python.org/) and [Pygame 1.9.1](http://pygame.org/) or higher in order to run μz. Python 3 and above is not supported; lower versions of Pygame may work, but are not tested
+You must have [Python 2.7](https://www.python.org/) and [Pygame 1.9.1](http://pygame.org/) or higher in order to run μz. Lower versions of Pygame may work, but are not tested. Experimental Python 3 support is available in the ``python3`` branch, however, there is no stable release of pygame with good Python 3 support, so you'll have to [get the latest source from mercurial and compile it yourself](http://www.pygame.org/wiki/CompileUbuntu#Python 3.x).
 
 **Note:** there are currently no official builds of Pygame for 64bit Windows systems. If you use Win64, you'll have to either install the 32bit version of Python, or an unofficial 64bit version of Pygame from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/).
 
