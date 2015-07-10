@@ -19,7 +19,7 @@ class ParseError(Exception):
     pass
 
 def read(fobj, filename, bare=False, options=None):
-    buf = ""
+    buf = b""
     bmap = muz.beatmap.Beatmap(None, 1)
     initialized = False
     essentialParsed = False
@@ -71,7 +71,7 @@ def read(fobj, filename, bare=False, options=None):
                             ))
                     else:
                         log.warning("unknown statement %s ignored", repr(s))
-            buf = ""
+            buf = b""
             continue
 
         buf += byte
