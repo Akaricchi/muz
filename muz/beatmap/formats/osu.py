@@ -39,7 +39,7 @@ patternSection = re.compile(r'^\[([a-zA-Z0-9]+)\]$')
 patternKeyVal = re.compile(r'^([a-zA-Z0-9]+)\s*:\s*(.*)$')
 
 def read(fobj, filename, bare=False, options=None):
-    buf = ""
+    buf = b""
     bmap = muz.beatmap.Beatmap(None, 1)
     versionOk = False
     section = None
@@ -53,24 +53,24 @@ def read(fobj, filename, bare=False, options=None):
         if byte in ('\r', '\n'):
             buf = buf.decode('utf-8').strip()
 
-            if not buf or  buf.startswith("//"):
-                buf = ""
+            if not buf or buf.startswith("//"):
+                buf = b""
                 continue
 
             if not versionOk:
                 assert "osu file format v" in buf
                 versionOk = True
-                buf = ""
+                buf = b""
                 continue
 
             s = patternSection.findall(buf)
             if s:
                 section = s[0]
-                buf = ""
+                buf = b""
                 continue
 
             if section == "Events" or section == "TimingPoints" or (bare and section == "HitObjects"):
-                buf = ""
+                buf = b""
                 continue
             elif section == "HitObjects":
                 vals = buf.split(',')
@@ -89,7 +89,7 @@ def read(fobj, filename, bare=False, options=None):
 
                 bmap.append(muz.beatmap.Note(band, hit, hold))
 
-                buf = ""
+                buf = b""
                 continue
             else:
                 s = patternKeyVal.findall(buf)
@@ -106,7 +106,7 @@ def read(fobj, filename, bare=False, options=None):
                             bmap.noterate = ARToNoterate(float(val))
 
                     bmap.meta["osu.%s.%s" % (section, key)] = val
-                    buf = ""
+                    buf = b""
                     continue
 
             raise SyntaxError("failed to parse %s in an osu! beatmap" % repr(buf))
