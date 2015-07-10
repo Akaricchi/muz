@@ -19,7 +19,7 @@ extensions = ["json"]
 locations = ["beatmaps"]
 
 def read(fobj, filename, bare=False, options=None):
-    raw = fobj.read()
+    raw = fobj.read().decode('utf-8')
     data = json.loads(raw[raw.index('{'):].decode('utf-8', errors='ignore'))
     musfile = data["audiofile"]
 

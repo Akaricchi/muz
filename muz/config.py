@@ -23,16 +23,10 @@ def get(name, defs):
 
 def merge(dest, source, path='muz'):
     for key in source:
-        if isinstance(key, str):
-            key = key.encode('utf-8')
-
         if key in dest and isinstance(dest[key], dict):
             merge(dest[key], source[key], path=path+'.'+key)
         else:
-            try:
-                val = source[key].encode('utf-8')
-            except Exception:
-                val = source[key]
+            val = source[key]
 
             if key not in dest:
                 log.warning("key %s doesn't exist", repr(path+'.'+key))

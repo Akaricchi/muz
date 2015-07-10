@@ -63,9 +63,6 @@ class Node(object):
     # Can't I do it better somehow?
     # Or at least give this almighty monster-method a more appropriate name?
     def locate(self, vpath, createDirs=False, put=None):
-        if not isinstance(vpath, str):
-            vpath = vpath.decode('utf-8')
-
         log.debug("locating %s in %s", vpath, self.name)
 
         o = None
@@ -232,9 +229,6 @@ class RealFile(Node):
         self.realPathExists = True
         self._realPath = os.path.abspath(path)
 
-        if not isinstance(self._realPath, str):
-            self._realPath = self._realPath.decode('utf-8')
-
         self.name = os.path.split(self._realPath)[-1]
         self.parent = parent
 
@@ -305,7 +299,7 @@ class VirtualDirectory(Node, collections.MutableMapping):
                     vd.loadPack(fpath)
 
         for f in os.listdir(path):
-            fpath = os.path.join(path, f).decode('utf-8')
+            fpath = os.path.join(path, f)
 
             if loadPacks and vd.canLoadPack(fpath):
                 continue
@@ -500,8 +494,6 @@ class Pack(BasePack):
 
     def addFile(self, name, fobj):
         name = self.getFilePrefix() + name
-        if isinstance(name, str):
-            name = name.encode('utf-8')
         self.zip.writestr(name, fobj.read())
 
     def save(self):

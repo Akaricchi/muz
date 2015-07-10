@@ -49,7 +49,7 @@ filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
 musicFilePattern = re.compile(r'.*\.(mp3|ogg|wav)$')
 
 def read(fobj, filename, bare=False, options=None):
-    raw = fobj.read()
+    raw = fobj.read().decode('utf-8')
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
 
@@ -60,9 +60,9 @@ def read(fobj, filename, bare=False, options=None):
         if match:
             mus = match[0][0] + '.ogg'
         else:
-            mus = "%s.ogg" % data["song_name"].replace("/", "_").encode('utf-8')
+            mus = "%s.ogg" % data["song_name"].replace("/", "_")
     else:
-        mus = "%s.ogg" % data["song_name"].replace("/", "_").encode('utf-8')
+        mus = "%s.ogg" % data["song_name"].replace("/", "_")
 
     bmap = muz.beatmap.Beatmap(None, 9, "../soundfiles/" + mus)
 
