@@ -1,7 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-
 
 import os, sys, logging, argparse
 
@@ -13,7 +11,6 @@ import muz.game as game
 import muz.util
 
 from muz import _config as config
-import imp
 
 NAME = "μz"
 VERSION = "0.01-prepreprealpha"
@@ -225,8 +222,6 @@ def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
     else:
         frontend = None
 
-    imp.reload(sys)
-    sys.setdefaultencoding("utf-8")
     initUserDir()
     loadConfig(requireLogLevel=requireLogLevel)
     initvfs()
