@@ -138,6 +138,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('--loop', metavar='TIME', type=int, action='store', default=0,
                    help='if >0, the song will automatically restart after being played for this much milliseconds (default: 0)')
 
+    g.add_argument('-o', '--beatmap-offset', metavar='TIME', type=int, action='store', default=None,
+                   help='offset timing of all notes on the beatmap by this value, in milliseconds (overrides the config setting)')
+
     g.add_argument('-f', '--fc-run', dest='fcrun', action='store_true', default=False,
                    help='automatically restart the game when the combo is broken')
 
