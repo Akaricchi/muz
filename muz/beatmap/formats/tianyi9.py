@@ -19,8 +19,8 @@ extensions = ["json"]
 locations = ["beatmaps"]
 
 def read(fobj, filename, bare=False, options=None):
-    raw = fobj.read().decode('utf-8')
-    data = json.loads(raw[raw.index('{'):].decode('utf-8', errors='ignore'))
+    raw = fobj.read().decode('utf-8', errors='ignore')
+    data = json.loads(raw[raw.index('{'):])
     musfile = data["audiofile"]
 
     if not musfile.endswith('.mp3') and not musfile.endswith('.ogg'):
