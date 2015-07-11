@@ -288,9 +288,6 @@ class VirtualDirectory(Node, collections.MutableMapping):
         self.name = "<virtual>"
         self.parent = self
 
-        self[VPATH_SELF] = self
-        self[VPATH_PARENT] = self
-
     @classmethod
     def fromFileSystem(cls, path, loadPacks=True, recursive=True):
         path = os.path.abspath(path)
@@ -353,10 +350,6 @@ class VirtualDirectory(Node, collections.MutableMapping):
         for path in paths:
             self.merge(VirtualDirectory.fromFileSystem(os.path.abspath(path)))
 
-        # FIXME: find out what overrides these
-        self[VPATH_SELF] = self
-        self[VPATH_PARENT] = self
-
     def __delitem__(self, i):
         del self.dict[i]
 
@@ -370,6 +363,9 @@ class VirtualDirectory(Node, collections.MutableMapping):
         return self.dict[i]
 
     def __setitem__(self, i, v):
+        if v in VPATH_SPECIAL:
+            raise KeyError("Attempted to overwrite a reserved node %r", v)
+
         self.dict[i] = v
 
     def __iter__(self):
