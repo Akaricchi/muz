@@ -207,15 +207,21 @@ class Proxy(Node):
         return self.obj
 
     def openRealFile(self):
-        if isinstance(self.obj, file): # XXX: a better way to check this?
+        try:
+            self.obj.fileno()
+        except OSError:
+            return self.tempFile()
+        else:
             return self.obj
-        return self.tempFile()
 
     @property
     def realPath(self):
-        if isinstance(self.obj, file):
-            return self.obj.name # XXX: a better way to check this?
-        return super(Proxy, self).realPath
+        try:
+            self.obj.fileno()
+        except OSError:
+            return super(Proxy, self).realPath
+        else:
+            return self.obj.name
 
     def __repr__(self):
         return "Proxy(%s)" % repr(self.obj)
