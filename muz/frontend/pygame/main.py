@@ -9,6 +9,7 @@ import muz.console
 
 from . import Sound, Music, gamerenderer
 from .. import QuitRequest
+from . import __name__ as __parentname__
 
 log = logging.getLogger(__name__)
 
@@ -186,7 +187,7 @@ class Frontend(muz.frontend.Frontend):
         }
 
     def makeDefaultConfig(self):
-        return muz.config.get(__name__, self.makeDefaultConfigRoot())
+        return muz.config.get(__parentname__, self.makeDefaultConfigRoot())
 
     def postInit(self):
         a = self.config["audio"]
