@@ -38,7 +38,6 @@ def merge(dest, source, path='muz'):
 
             if key not in dest:
                 log.warning("key %s doesn't exist", repr(path+'.'+key))
-                print(dest.keys())
             else:
                 td, ts = type(dest[key]), type(val)
                 if td is not ts and dest[key] is not None:
