@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os, sys, logging, argparse
 from itertools import ifilter as filter
@@ -103,7 +106,7 @@ def handleGeneralArgs(parser, argv, namespace):
 
         l = vfs.locate(n.listvfspath)
         for key in sorted(l.keys()):
-            print "%s%s" % (key, vfs.VPATH_SEP if l[key].isDir else "")
+            print("%s%s" % (key, vfs.VPATH_SEP if l[key].isDir else ""))
 
         exit(0)
 
@@ -119,7 +122,7 @@ def handleGeneralArgs(parser, argv, namespace):
                 return b.name
 
         for s in sorted(filter(None, (muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()))):
-            print s + ": %s" % (getname(s) if n.listbeatmaps > 1 else "")
+            print(s + ": %s" % (getname(s) if n.listbeatmaps > 1 else ""))
 
         exit(0)
 

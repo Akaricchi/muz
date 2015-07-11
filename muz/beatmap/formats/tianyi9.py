@@ -1,5 +1,8 @@
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import json, urllib2, cookielib, shutil, os, logging, sys
 from StringIO import StringIO
@@ -19,8 +22,8 @@ extensions = ["json"]
 locations = ["beatmaps"]
 
 def read(fobj, filename, bare=False, options=None):
-    raw = fobj.read()
-    data = json.loads(raw[raw.index('{'):].decode('utf-8', errors='ignore'))
+    raw = fobj.read().decode('utf-8', errors='ignore')
+    data = json.loads(raw[raw.index('{'):])
     musfile = data["audiofile"]
 
     if not musfile.endswith('.mp3') and not musfile.endswith('.ogg'):
@@ -65,7 +68,7 @@ def obtain(liveid):
 
     log.info("downloading metadata...")
     meta = json.load(opener.open("%s/getlive?live_id=%s" % (api, liveid)))["content"]
-    print meta
+    print(meta)
     name = muz.util.safeFilename(meta["live_name"])
     pakname = "beatmap-tianyi9-%s%s%s" % (name, "-" if name else "", liveid)
 

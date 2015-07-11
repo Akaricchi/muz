@@ -1,5 +1,8 @@
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import logging, re, os
 log = logging.getLogger(__name__)
@@ -49,7 +52,7 @@ filenamePattern = re.compile(r'^(.*)_(easy|normal|hard|expert)\.rs$')
 musicFilePattern = re.compile(r'.*\.(mp3|ogg|wav)$')
 
 def read(fobj, filename, bare=False, options=None):
-    raw = fobj.read()
+    raw = fobj.read().decode('utf-8')
     data = json.loads(raw[raw.index('{'):])
     songinfo = data["song_info"][0]
 

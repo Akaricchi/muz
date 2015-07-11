@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import logging, shutil, os
 log = logging.getLogger(__name__)
@@ -19,7 +22,7 @@ class ParseError(Exception):
     pass
 
 def read(fobj, filename, bare=False, options=None):
-    buf = ""
+    buf = b""
     bmap = muz.beatmap.Beatmap(None, 1)
     initialized = False
     essentialParsed = False
@@ -31,7 +34,7 @@ def read(fobj, filename, bare=False, options=None):
         if not byte:
             break
 
-        if byte in ('\r', '\n'):
+        if byte in (b'\r', b'\n'):
             if buf:
                 buf = buf.decode('utf-8')
 
@@ -71,7 +74,7 @@ def read(fobj, filename, bare=False, options=None):
                             ))
                     else:
                         log.warning("unknown statement %s ignored", repr(s))
-            buf = ""
+            buf = b""
             continue
 
         buf += byte

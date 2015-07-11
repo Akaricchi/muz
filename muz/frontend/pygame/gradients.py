@@ -5,6 +5,10 @@
 """
 Allow to draw some gradients relatively easy.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
 __author__ = "$Author: DR0ID $"
 __version__= "$Revision: 109 $"
