@@ -117,3 +117,10 @@ def convertMp3(vfsnode):
 
     pack.save()
     a, b = muz.vfs.root.loadPack(pack.path)
+
+def forever(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        while True:
+            func(*args, **kwargs)
+    return wrapper
