@@ -1,5 +1,8 @@
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import threading, code, logging, queue
 from contextlib import contextmanager
@@ -127,7 +130,7 @@ class AsyncInput(object):
                 try:
                     i = inputFunc(prompt + ("... " if console.buffer else ">>> "))
                 except EOFError:
-                    print
+                    print()
                     console.push(QuitRequest)
                 else:
                     console.push(i)

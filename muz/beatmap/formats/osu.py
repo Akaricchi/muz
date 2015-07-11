@@ -1,6 +1,4 @@
 
-
-
 import re
 import muz
 import muz.beatmap

@@ -1,6 +1,4 @@
 
-
-
 import collections, os, random
 from io import StringIO
 

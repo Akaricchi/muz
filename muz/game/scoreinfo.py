@@ -1,6 +1,4 @@
 
-
-
 from collections import namedtuple
 
 ScoreInfo = namedtuple("ScoreInfo", ["name", "threshold", "breakscombo", "score"])

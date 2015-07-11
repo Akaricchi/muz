@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-
 import logging, shutil, os
 log = logging.getLogger(__name__)
 

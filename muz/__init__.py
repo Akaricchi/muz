@@ -1,6 +1,4 @@
 
-
-
 import os, logging
 
 def configureLogger(log):
