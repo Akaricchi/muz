@@ -239,6 +239,7 @@ class LazyNode(object):
     def node(self):
         if self._node is None:
             n = self._builder()
+            del self._builder
 
             if self.parent is self:
                 n.parent = n
