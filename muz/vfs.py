@@ -10,6 +10,7 @@ import muz
 import muz.config
 
 config = muz.config.get(__name__, {
+    "lazy"              : True,
     "load-packs"        : True,
     "try-local"         : True,
     "auto-convert-mp3"  : False,
@@ -69,8 +70,6 @@ class Node(object):
         if not isinstance(vpath, unicode):
             vpath = vpath.decode('utf-8')
 
-        log.debug("locating %s in %s", vpath, self.name)
-
         o = None
         f = self
 
@@ -83,6 +82,7 @@ class Node(object):
                 f = f[sub]
             elif createDirs:
                 f[sub] = VirtualDirectory()
+                f[sub].parent = f
                 o = f
                 f = f[sub]
             elif put is not None:
@@ -97,7 +97,6 @@ class Node(object):
             f = o[sub]
             f.parent = o
 
-        log.debug("found %s in the vfs", vpath)
         return f
 
     def merge(self, n):
@@ -105,15 +104,11 @@ class Node(object):
             if key in VPATH_SPECIAL:
                 continue
 
-            try:
+            if key in self and self[key].isDir:
                 self[key].merge(n[key])
-            except Exception:
+            else:
                 self[key] = n[key]
                 self[key].parent = self
-                try:
-                    self[key][VPATH_PARENT] = self
-                except Exception:
-                    pass
 
     def update(self, n):
         return self.merge(n)
@@ -205,6 +200,45 @@ class Node(object):
     def realPath(self):
         return self.tempFile().name
 
+class LazyNode(object):
+    def __init__(self, builder, parent=None):
+        self._builder = builder
+        self._node = None
+
+        if parent is None:
+            parent = self
+
+        self.parent = parent
+
+    @property
+    def node(self):
+        if self._node is None:
+            n = self._builder()
+
+            if self.parent is self:
+                n.parent = n
+            else:
+                n.parent = self.parent
+
+            self._node = n
+
+        return self._node
+
+    def __getattr__(self, attr):
+        return getattr(self.node, attr)
+
+    def __iter__(self):
+        return self.node.__iter__()
+
+    def __setitem__(self, i, v):
+        self.node[i] = v
+
+    def __getitem__(self, i):
+        return self.node[i]
+
+    def __repr__(self):
+        return "LazyNode(%r)" % self._node
+
 class Proxy(Node):
     def __init__(self, obj):
         super(Proxy, self).__init__()
@@ -289,7 +323,7 @@ class VirtualDirectory(Node, collections.MutableMapping):
         self.parent = self
 
     @classmethod
-    def fromFileSystem(cls, path, loadPacks=True, recursive=True):
+    def fromFileSystem(cls, path, loadPacks=True, recursive=True, lazy=True):
         path = os.path.abspath(path)
         vd = cls()
 
@@ -311,7 +345,14 @@ class VirtualDirectory(Node, collections.MutableMapping):
                 continue
 
             if recursive and os.path.isdir(fpath):
-                o = cls.fromFileSystem(fpath, loadPacks=loadPacks, recursive=True)
+                builder = lambda fpath=fpath: cls.fromFileSystem(fpath, loadPacks=loadPacks,
+                                                                        recursive=recursive,
+                                                                        lazy=lazy)
+
+                if lazy:
+                    o = LazyNode(parent=vd, builder=builder)
+                else:
+                    o = builder()
             else:
                 o = RealFile(fpath)
 
@@ -330,25 +371,29 @@ class VirtualDirectory(Node, collections.MutableMapping):
 
     def loadPack(self, packpath):
         if packpath.endswith(".pk3"):
-            p = ZipArchive(packpath)
+            p = LazyNode(lambda: ZipArchive(packpath))
             self.merge(p)
             return p, ""
         elif packpath.endswith(".osz"):
-            p = ZipArchive(packpath)
+            p = LazyNode(lambda: ZipArchive(packpath))
             beatmaps = self.locate("beatmaps", createDirs=True)
             beatmaps.merge(p)
             return p, "beatmaps"
         elif packpath.endswith(".pk3dir"):
-            p = VirtualDirectory.fromFileSystem(packpath, loadPacks=False)
+            def builder():
+                v = VirtualDirectory.fromFileSystem(packpath, loadPacks=False)
+                log.info("added virtual pack %s", packpath)
+                return v
+
+            p = LazyNode(builder)
             self.merge(p)
-            log.info("added virtual pack %s", packpath)
             return p, ""
         else:
             raise RuntimeError("invalid pack name %s" % packpath)
 
     def loadDataDirs(self, *paths):
         for path in paths:
-            self.merge(VirtualDirectory.fromFileSystem(os.path.abspath(path)))
+            self.merge(LazyNode(builder=lambda path=path: VirtualDirectory.fromFileSystem(os.path.abspath(path))))
 
     def __delitem__(self, i):
         del self.dict[i]
@@ -550,3 +595,16 @@ def locate(path, **kwargs):
         fsroot = root
 
     return fsroot.locate(path)
+
+def applySettings():
+    if not config["lazy"]:
+        def fakeLazyNode(builder, parent=None, *args, **kwargs):
+            n = builder()
+            if parent is None:
+                parent = n
+            n.parent = parent
+            return n
+
+        global LazyNode
+        LazyNode = fakeLazyNode
+
