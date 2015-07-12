@@ -12,6 +12,7 @@ import math
 
 name = "osu! beatmap"
 extensions = ["osu"]
+inferExtensions = extensions
 locations = ["beatmaps"]
 
 ARTable = [

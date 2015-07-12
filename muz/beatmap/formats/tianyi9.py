@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 name = "LLpractice beatmap"
 extensions = ["json"]
+inferExtensions = extensions
 locations = ["beatmaps"]
 
 def read(fobj, filename, bare=False, options=None):

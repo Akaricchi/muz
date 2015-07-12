@@ -15,6 +15,7 @@ from StringIO import StringIO
 
 name = "Zipped pack file"
 extensions = ["pk3", "zip", "osz"]
+inferExtensions = []
 locations = ["."]
 
 class PackError(Exception):
