@@ -14,7 +14,7 @@ import muz.beatmap
 from StringIO import StringIO
 
 name = "Zipped pack file"
-extensions = ["pk3", "osz"]
+extensions = ["pk3", "zip", "osz"]
 locations = ["."]
 
 class PackError(Exception):

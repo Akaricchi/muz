@@ -51,10 +51,10 @@ def dirname(vpath):
     return ""
 
 def packNameValid(packpath):
-    return any(packpath.endswith("." + e) for e in ("pk3dir", "pk3", "osz"))
+    return any(packpath.endswith("." + e) for e in ("pk3dir", "pk3", "zip", "osz"))
 
 def loadPack(packpath):
-    if packpath.endswith(".pk3"):
+    if packpath[-4:] in (".pk3", ".zip"):
         p = LazyNode(lambda: ZipArchive(packpath))
         return p, ""
 
