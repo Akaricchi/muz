@@ -9,6 +9,8 @@ import os, zipfile, tempfile, shutil, atexit, logging, shutil, collections
 import muz
 import muz.config
 
+from muz.util import multiset
+
 config = muz.config.get(__name__, {
     "lazy"              : True,
     "load-packs"        : True,
@@ -47,6 +49,29 @@ def dirname(vpath):
     if len(p) > 1:
         return p[-2]
     return ""
+
+def packNameValid(packpath):
+    return any(packpath.endswith("." + e) for e in ("pk3dir", "pk3", "osz"))
+
+def loadPack(packpath):
+    if packpath.endswith(".pk3"):
+        p = LazyNode(lambda: ZipArchive(packpath))
+        return p, ""
+
+    if packpath.endswith(".osz"):
+        p = LazyNode(lambda: ZipArchive(packpath))
+        return p, "beatmaps"
+
+    if packpath.endswith(".pk3dir"):
+        def builder():
+            v = VirtualDirectory.fromFileSystem(packpath, loadPacks=False)
+            log.info("added virtual pack %s", packpath)
+            return v
+
+        p = LazyNode(builder)
+        return p, ""
+
+    raise RuntimeError("invalid pack name %s" % packpath)
 
 class VFSError(Exception):
     pass
@@ -323,7 +348,7 @@ class VirtualDirectory(Node, collections.MutableMapping):
         self.parent = self
 
     @classmethod
-    def fromFileSystem(cls, path, loadPacks=True, recursive=True, lazy=True):
+    def fromFileSystem(cls, path, loadPacks=True, recursive=True):
         path = os.path.abspath(path)
         vd = cls()
 
@@ -335,24 +360,18 @@ class VirtualDirectory(Node, collections.MutableMapping):
             for f in sorted(os.listdir(path)):
                 fpath = os.path.join(path, f)
 
-                if vd.canLoadPack(fpath):
+                if packNameValid(fpath):
                     vd.loadPack(fpath)
 
         for f in os.listdir(path):
             fpath = os.path.join(path, f).decode('utf-8')
 
-            if loadPacks and vd.canLoadPack(fpath):
+            if loadPacks and packNameValid(fpath):
                 continue
 
             if recursive and os.path.isdir(fpath):
-                builder = lambda fpath=fpath: cls.fromFileSystem(fpath, loadPacks=loadPacks,
-                                                                        recursive=recursive,
-                                                                        lazy=lazy)
-
-                if lazy:
-                    o = LazyNode(parent=vd, builder=builder)
-                else:
-                    o = builder()
+                o = LazyNode(parent=vd, builder=lambda fpath=fpath: cls.fromFileSystem(fpath, loadPacks=loadPacks,
+                                                                                              recursive=recursive))
             else:
                 o = RealFile(fpath)
 
@@ -365,31 +384,10 @@ class VirtualDirectory(Node, collections.MutableMapping):
 
         return vd
 
-    @staticmethod
-    def canLoadPack(packpath):
-        return any(packpath.endswith("." + e) for e in ("pk3dir", "pk3", "osz"))
-
     def loadPack(self, packpath):
-        if packpath.endswith(".pk3"):
-            p = LazyNode(lambda: ZipArchive(packpath))
-            self.merge(p)
-            return p, ""
-        elif packpath.endswith(".osz"):
-            p = LazyNode(lambda: ZipArchive(packpath))
-            beatmaps = self.locate("beatmaps", createDirs=True)
-            beatmaps.merge(p)
-            return p, "beatmaps"
-        elif packpath.endswith(".pk3dir"):
-            def builder():
-                v = VirtualDirectory.fromFileSystem(packpath, loadPacks=False)
-                log.info("added virtual pack %s", packpath)
-                return v
-
-            p = LazyNode(builder)
-            self.merge(p)
-            return p, ""
-        else:
-            raise RuntimeError("invalid pack name %s" % packpath)
+        pack, subdir = loadPack(packpath)
+        self.locate(subdir, createDirs=True).merge(pack)
+        return pack, subdir
 
     def loadDataDirs(self, *paths):
         for path in paths:

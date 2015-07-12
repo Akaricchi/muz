@@ -8,7 +8,6 @@ import string, logging, sys, os
 from functools import wraps
 
 import muz
-import muz.vfs
 
 log = logging.getLogger(__name__)
 
@@ -127,3 +126,8 @@ def forever(func):
         while True:
             func(*args, **kwargs)
     return wrapper
+
+def multiset(objs, **attrs):
+    for obj in objs:
+        for attr in attrs:
+            setattr(obj, attr, attrs[attr])
