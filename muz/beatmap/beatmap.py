@@ -395,7 +395,7 @@ def load(name, bare=False, options=None):
 
     log.info("attempting to load beatmap %s", repr(name))
 
-    for ext, importer in list(muz.beatmap.formats.importersByExt.items()):
+    for ext, importer in muz.beatmap.formats.importersByInferExt.items():
         if wantext is not None and ext != wantext:
             continue
 

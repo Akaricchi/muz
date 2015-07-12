@@ -7,6 +7,7 @@ import muz.beatmap
 
 name = "SIFTrain beatmap"
 extensions = ["rs"]
+inferExtensions = extensions
 locations = ["beatmaps/datafiles"]
 
 #

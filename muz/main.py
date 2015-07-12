@@ -31,10 +31,17 @@ def initvfs():
     if globalArgs.no_vfs:
         return
 
-    vfs.root.loadDataDirs(basedir, userdir, *globalArgs.extradirs)
+    vfs.applySettings()
 
-    for pack in globalArgs.extrapacks:
-        vfs.root.loadPack(pack)
+    def initroot(root=vfs.root):
+        root.loadDataDirs(basedir, userdir, *globalArgs.extradirs)
+
+        for pack in globalArgs.extrapacks:
+            root.loadPack(pack)
+
+        return root
+
+    vfs.root = vfs.LazyNode(initroot)
 
 def initArgParser(desc=None, prog=None):
     if desc is None:

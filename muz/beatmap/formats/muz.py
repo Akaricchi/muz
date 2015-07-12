@@ -9,6 +9,7 @@ import muz.beatmap
 
 name = "μz beatmap"
 extensions = ["beatmap"]
+inferExtensions = extensions
 locations = ["beatmaps"]
 
 VERSION = "1"
