@@ -300,12 +300,12 @@ class Beatmap(collections.MutableSequence):
             note.band = order[note.band]
 
     def shuffleBands(self):
-        o = list(range(self.numbands))
+        o = tuple(range(self.numbands))
         random.shuffle(o)
         self.orderBands(o)
 
     def mirrorBands(self):
-        self.orderBands(list(range(self.numbands))[::-1])
+        self.orderBands(tuple(range(self.numbands))[::-1])
 
     def fix(self):
         self.notelist.sort(key=lambda note: note.hitTime)
@@ -436,7 +436,7 @@ def load(name, bare=False, options=None):
 def nameFromPath(path):
     path = vfs.normalizePath(path)
 
-    for ext, importer in list(muz.beatmap.formats.importersByExt.items()):
+    for ext, importer in muz.beatmap.formats.importersByExt.items():
         if not path.endswith("." + ext):
             continue
 

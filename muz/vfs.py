@@ -187,7 +187,7 @@ class Node(object):
             return self
 
     def walk(self, pref=''):
-        for key, val in list(self.items()):
+        for key, val in self.items():
             if key not in VPATH_SPECIAL:
                 try:
                     for d, f, v in val.walk(pref + key + VPATH_SEP):
@@ -202,7 +202,7 @@ class Node(object):
         path = [myname]
 
         try:
-            for k, n in list(self.items()):
+            for k, n in self.items():
                 if k not in VPATH_SPECIAL:
                     p = n.trace(node, myname=k)
                     if p:
