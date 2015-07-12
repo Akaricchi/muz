@@ -392,7 +392,7 @@ class VirtualDirectory(Node, collections.MutableMapping):
 
     def loadDataDirs(self, *paths):
         for path in paths:
-            self.merge(LazyNode(builder=lambda path=path: VirtualDirectory.fromFileSystem(os.path.abspath(path))))
+            self.merge(VirtualDirectory.fromFileSystem(os.path.abspath(path)))
 
     def __delitem__(self, i):
         del self.dict[i]
