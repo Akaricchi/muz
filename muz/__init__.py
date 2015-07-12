@@ -25,7 +25,7 @@ _config = muz.config.get(__name__, {
     },
 })
 
-import muz.util
+from . import util, config, main, vfs, assets, console, beatmap
 configureLogger(log)
 
 from muz.main import initvfs, run, NAME, VERSION, init, bareInit
