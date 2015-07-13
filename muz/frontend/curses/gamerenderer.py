@@ -104,7 +104,7 @@ class GameRenderer(object):
         win.addstr(height - 4, width - 1 - len(combostr), combostr)
 
         win.addstr(height - 2, 1, game.beatmap.name)
-        s = "%i FPS" % int(game.clock.fps)
+        s = "   %i FPS" % int(game.clock.fps)
         win.addstr(height - 2, width - 1 - len(s), s)
 
         win.refresh()

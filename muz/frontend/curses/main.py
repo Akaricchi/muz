@@ -120,7 +120,7 @@ class Frontend(muz.frontend.Frontend):
         curses.curs_set(0)
         mainwin = scr
         win = mainwin
-        #win = curses.newwin(30, 100, 10, 10)
+        win = curses.newwin(30, 100, 10, 10)
         win.nodelay(True)
 
         game = self.activity
