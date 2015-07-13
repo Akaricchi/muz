@@ -108,7 +108,8 @@ class Frontend(muz.frontend.Frontend):
 
     def makeDefaultConfigRoot(self):
         return {
-            "audio"   : self.makeDefaultConfigAudio(),
+            "audio"                 : self.makeDefaultConfigAudio(),
+            "use-default-colors"    : True,
         }
 
     def makeDefaultConfig(self):
@@ -116,7 +117,16 @@ class Frontend(muz.frontend.Frontend):
 
     def cursesGameLoop(self, scr):
         curses.start_color()
-        curses.use_default_colors()
+
+        if self.config["use-default-colors"]:
+            curses.use_default_colors()
+            bg = -1
+        else:
+            bg = curses.COLOR_BLACK
+
+        for c in xrange(8):
+            curses.init_pair(c + 1, c, bg)
+
         curses.curs_set(0)
         mainwin = scr
         win = mainwin
