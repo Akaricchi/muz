@@ -10,9 +10,6 @@ log = logging.getLogger(__name__)
 import muz
 import muz.vfs as vfs
 
-class AssetLoadingError(Exception):
-    pass
-
 def sound(name, root=None):
     oname = name
     name, ext = os.path.splitext(name)
