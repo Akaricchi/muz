@@ -77,8 +77,6 @@ class Frontend(muz.frontend.Frontend):
             buffer=a["buffer"]
         )
 
-        pygame.init()
-
     def postInit(self):
         locale.setlocale(locale.LC_ALL, '')
         self.initAudio()
