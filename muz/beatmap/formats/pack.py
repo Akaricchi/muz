@@ -11,8 +11,6 @@ import muz
 import muz.vfs
 import muz.beatmap
 
-from StringIO import StringIO
-
 name = "Zipped pack file"
 extensions = ["pk3", "zip", "osz"]
 inferExtensions = []
