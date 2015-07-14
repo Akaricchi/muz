@@ -183,6 +183,6 @@ def write(bmap, fobj, options=None):
         if musicFilePattern.match(musname):
             musname = os.path.splitext(musname)[0]
 
-    json.dump(root, fobj, ensure_ascii=False, separators=(',', ':'))
+    fobj.write(json.dumps(root, fobj, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
 
     return newname, "%s/%s.%s" %(locations[0], newname, extensions[0]), "beatmaps/soundfiles/%s" % musname

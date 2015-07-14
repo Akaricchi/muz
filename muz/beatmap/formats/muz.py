@@ -98,9 +98,9 @@ def write(bmap, fobj, options=None):
                ).encode('utf-8'))
 
     for key, val in sorted(bmap.meta.items(), key=lambda p: p[0]):
-        fobj.write("meta %s %s\n" % (key, val.encode('utf-8')))
+        fobj.write(("meta %s %s\n" % (key, val)).encode('utf-8'))
 
     for note in bmap:
-        fobj.write("note %i %i%s\n" % (note.band, note.hitTime, (" " + str(note.holdTime)) if note.holdTime else ""))
+        fobj.write(("note %i %i%s\n" % (note.band, note.hitTime, (" " + str(note.holdTime)) if note.holdTime else "")).encode('utf-8'))
 
     return bmap.name, "%s/%s.%s" % (locations[0], bmap.name, extensions[0]), "%s/%s" % (locations[0], os.path.splitext(mus)[0])
