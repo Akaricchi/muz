@@ -4,7 +4,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-import random
+import random, logging
+log = logging.getLogger(__name__)
 
 from . import Note
 
@@ -22,16 +23,73 @@ def scale(bmap, scale):
     return bmap
 
 def randomize(bmap):
+    applyRefs(bmap)
+
+    for note in bmap:
+        note.varBands = range(bmap.numbands)
+
+    return bmap
+
+def applyNondeterminism(bmap):
     bmap.fix()
 
     mindist = bmap.minimalNoteDistance
     busy = [0 for band in xrange(bmap.numbands)]
 
-    for note in bmap:
-        note.band = random.choice([i for i in xrange(bmap.numbands) if note.hitTime - busy[i] >= 0])
+    for notenum, note in enumerate(bmap):
+        note.resolveRef(bmap)
+
+        if note.varBands is not None:
+            if note.varBands:
+                vb = note.varBands
+            else:
+                vb = range(bmap.numbands)
+
+            vb = [
+                band for band in [band % bmap.numbands for band in vb]
+                    if band in xrange(bmap.numbands) and note.hitTime - busy[band] >= 0
+            ]
+
+            if vb:
+                note.band = random.choice(vb)
+
+        i = 1
+        oband = note.band
+        while note.hitTime - busy[note.band] < 0:
+            if i > bmap.numbands:
+                raise RuntimeError("No free bands, beatmap sucks")
+
+            if i == 1:
+                log.warning("Note %i (%r) placed on a busy band, relocating", notenum, note)
+
+            note.band = (oband + i * (-1 + 2 * i % 2)) % bmap.numbands
+            i += 1
+
         busy[note.band] = note.hitTime + note.holdTime + mindist
 
     return bmap
+
+def chainRefs(bmap, cOfs=0, vOfs=None):
+    prev = -1
+    for i, note in enumerate(bmap):
+        note.ref = prev
+        note.refOfs = cOfs
+        note.refVarOfs = vOfs
+        prev = i
+
+    return bmap
+
+def applyRefs(bmap):
+    for i, note in enumerate(bmap):
+        note.resolveRef(bmap)
+
+    return bmap
+
+def stairify(bmap):
+    return chainRefs(bmap, 0, [1])
+
+def stairifyRandomly(bmap):
+    return chainRefs(bmap, 0, [1, -1])
 
 def insanify(bmap):
     bmap.fix()
@@ -97,14 +155,15 @@ def holdify(bmap):
 def orderBands(bmap, order):
     for note in bmap:
         note.band = order[note.band]
+
     return bmap
 
 def shuffleBands(bmap):
     o = range(bmap.numbands)
     random.shuffle(o)
-    orderBands(o)
+    orderBands(bmap, o)
     return bmap
 
 def mirrorBands(bmap):
-    orderBands(range(bmap.numbands)[::-1])
+    orderBands(bmap, range(bmap.numbands)[::-1])
     return bmap

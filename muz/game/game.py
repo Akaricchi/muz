@@ -195,11 +195,16 @@ class Game(object):
         if config["holdify"] or muz.main.globalArgs.holdify:
             self.beatmap.holdify()
 
+        self.beatmap.applyNondeterminism()
+        self.beatmap.applyRefs()
+
+        # re-ordering goes very last, so that it doesn't break any refs
+
         if config["shuffle-bands"] or muz.main.globalArgs.shuffle_bands:
             self.beatmap.shuffleBands()
 
         if config['mirror-bands'] or muz.main.globalArgs.mirror_bands:
-            self.beatmap.mirrorBands()        
+            self.beatmap.mirrorBands()
 
     def start(self, refreshBeatmap=True):
         if refreshBeatmap:

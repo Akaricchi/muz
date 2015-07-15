@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import collections, os
-from io import StringIO
 from functools import partial
 
 import muz
@@ -37,7 +36,8 @@ class Beatmap(collections.MutableSequence):
             self.meta.update(meta)
 
     def clone(self):
-        bmap = Beatmap(self.name, self.numbands, source=self, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
+        notes = (note.clone() for note in self)
+        bmap = Beatmap(self.name, self.numbands, source=notes, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
         bmap.noterate = self.noterate
         return bmap
 
