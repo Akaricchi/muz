@@ -57,17 +57,18 @@ def applyNondeterminism(bmap):
             if vb:
                 note.band = random.choice(vb)
 
-        i = 1
-        oband = note.band
-        while note.hitTime - busy[note.band] < 0:
-            if i > bmap.numbands * 2:
-                raise RuntimeError("No free bands, beatmap sucks")
+        if not note.isHint:
+            i = 1
+            oband = note.band
+            while note.hitTime - busy[note.band] < 0:
+                if i > bmap.numbands * 2:
+                    raise RuntimeError("No free bands, beatmap sucks")
 
-            if i == 1:
-                log.warning("Note %i (%r) placed on a busy band, relocating", notenum, note)
+                if i == 1:
+                    log.warning("Note %i (%r) placed on a busy band, relocating", notenum, note)
 
-            note.band = (oband + i * (-1 + 2 * (i % 2))) % bmap.numbands
-            i += 1
+                note.band = (oband + i * (-1 + 2 * (i % 2))) % bmap.numbands
+                i += 1
 
         busy[note.band] = max(busy[note.band], note.hitTime + note.holdTime + mindist)
 
