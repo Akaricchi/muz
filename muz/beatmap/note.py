@@ -20,7 +20,12 @@ class Note(object):
 
         try:
             self.holdTime = int(holdTime)
-            assert self.holdTime >= 0
+
+            if isHint:
+                if self.holdTime < 0:
+                    self.holdTime = -1
+            elif self.holdTime < 0:
+                assert self.holdTime >= 0
         except Exception:
             raise NoteError("bad hold time")
 

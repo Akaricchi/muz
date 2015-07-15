@@ -70,7 +70,8 @@ def applyNondeterminism(bmap):
                 note.band = (oband + i * (-1 + 2 * (i % 2))) % bmap.numbands
                 i += 1
 
-        busy[note.band] = max(busy[note.band], note.hitTime + note.holdTime + mindist)
+        if note.holdTime >= 0:
+            busy[note.band] = max(busy[note.band], note.hitTime + note.holdTime + mindist)
 
     return bmap
 
@@ -102,7 +103,7 @@ def invalidateHints(bmap):
     for note in bmap:
         if note.isHint:
             note.hitTime = -1
-            note.holdTime = 0
+            note.holdTime = -1
     return bmap
 
 def stripHints(bmap):

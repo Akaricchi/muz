@@ -300,7 +300,10 @@ class GameRenderer(object):
 
         for note in game.beatmap:
             hitdiff  = note.hitTime - game.time + self.targetoffs / noterate
-            holddiff = hitdiff + note.holdTime
+            holddiff = hitdiff
+
+            if note.holdTime > 0:
+                holddiff += note.holdTime
 
             if holddiff < 0 or (note.isHint and not config["show-hintnotes"]):
                 continue
@@ -322,8 +325,11 @@ class GameRenderer(object):
             grad = None
 
             if note.isHint:
-                clr1 = (128, 128, 128)
-                clr2 = (128, 128, 128)
+                if note.holdTime < 0:
+                    clr1 = (128, 128, 200)
+                else:
+                    clr1 = (128, 128, 128)
+                clr2 = clr1
             elif band.heldNote == note:
                 if self.holdGradients:
                     grad = self.highlightGradient

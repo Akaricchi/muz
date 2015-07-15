@@ -130,6 +130,14 @@ class Builder(object):
 
         return self.wrapped
 
+    def anchor(self, name=None):
+        self.hint(-1)
+
+        if name is not None:
+            self.tag(name)
+
+        return self.wrapped
+
     def getDelay(self, delayfract):
         try:
             return sum(self.getDelay(d) for d in delayfract)
