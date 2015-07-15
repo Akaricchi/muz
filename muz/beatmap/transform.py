@@ -41,6 +41,9 @@ def applyNondeterminism(bmap):
         if note.hitTime < 0:
             continue
 
+        if note.ref >= notenum:
+            raise RuntimeError("Reference to self or later note: %i -> %i" % (notenum, note.ref))
+
         note.resolveRef(bmap)
 
         if note.varBands is not None:
@@ -76,7 +79,7 @@ def applyNondeterminism(bmap):
     return bmap
 
 def chainRefs(bmap, cOfs=0, vOfs=None):
-    invalidateHints(bmap)
+    stripHints(bmap)
 
     prev = -1
     for i, note in enumerate(bmap):

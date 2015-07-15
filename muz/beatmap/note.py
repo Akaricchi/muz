@@ -52,12 +52,10 @@ class Note(object):
         if self.ref < 0:
             return
 
-        def resolve(note, offset):
-            if note.ref < 0:
-                return (note.band + offset) % bmap.numbands
-            return resolve(bmap[note.ref], offset)
+        if bmap[self.ref].ref >= 0:
+            raise NoteError("Unsolvable deep reference: %i -> %i -> ..." % (bmap.index(self), bmap[self.ref].ref))
 
-        self.band = resolve(self, self.refOfs)
+        self.band = (bmap[self.ref].band + self.refOfs) % bmap.numbands
 
         if self.refVarOfs is None:
             self.varBands = None
