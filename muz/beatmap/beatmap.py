@@ -109,6 +109,7 @@ class Beatmap(collections.MutableSequence):
     def __setitem__(self, i, v):
         self.checknote(v)
         self.notelist[i] = v
+        v.num = i
 
     def insert(self, i, v):
         self.checknote(v)
@@ -165,9 +166,29 @@ class Beatmap(collections.MutableSequence):
 
         return mindist
 
-    def fix(self):
+    def storeRefs(self):
+        for i, note in enumerate(self):
+            note.num = i
+            if note.ref < 0:
+                note.refObj = None
+            else:
+                note.refObj = self[note.ref]
+
+    def updateRefs(self):
+        for i, note in enumerate(self):
+            note.num = i
+            if note.refObj is None:
+                note.ref = -1
+            else:
+                note.ref = note.refObj.num
+
+    def sort(self):
         self.notelist.sort(key=lambda note: note.hitTime)
-        #self.applyMeta()
+
+    def fix(self):
+        self.storeRefs()
+        self.sort()
+        self.updateRefs()
 
     def __getattr__(self, attr):
         return partial(getattr(transform, attr), self)

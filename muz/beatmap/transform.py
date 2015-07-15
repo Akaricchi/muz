@@ -122,7 +122,7 @@ def stripHolds(bmap):
         if note.holdTime:
             t = note.hitTime + note.holdTime
             note.holdTime = 0
-            bmap.append(Note(note.band, t, 0))
+            bmap.append(Note(note.band, t, 0, ref=note.num))
 
     bmap.fix()
     return bmap

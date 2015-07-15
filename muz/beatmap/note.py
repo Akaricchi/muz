@@ -38,6 +38,9 @@ class Note(object):
         self.ref = ref
         self.refOfs = refOfs
 
+        self.num = 0
+        self.refObj = None
+
     def resolveRef(self, bmap):
         if self.ref < 0:
             return
