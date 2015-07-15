@@ -97,9 +97,9 @@ def orderBands(bmap, order):
 def shuffleBands(bmap):
     o = tuple(range(bmap.numbands))
     random.shuffle(o)
-    orderBands(o)
+    orderBands(bmap, o)
     return bmap
 
 def mirrorBands(bmap):
-    orderBands(tuple(range(bmap.numbands))[::-1])
+    orderBands(bmap, tuple(range(bmap.numbands)[::-1]))
     return bmap

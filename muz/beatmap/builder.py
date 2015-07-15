@@ -41,7 +41,12 @@ class Builder(object):
         self.beatmap.meta = v
 
     def __call__(self, *bands):
-        self.bands = bands
+        s = set(bands)
+
+        if len(s) < len(bands):
+            log.warning("duplicate values in band selector %r ignored", bands)
+
+        self.bands = s
         return self
 
     def beat(self, delayfract=0.0):
