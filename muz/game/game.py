@@ -198,6 +198,9 @@ class Game(object):
         self.beatmap.applyNondeterminism()
         self.beatmap.applyRefs()
 
+        if config["strip-hintnotes"]:
+            self.beatmap.stripHints()
+
         # re-ordering goes very last, so that it doesn't break any refs
 
         if config["shuffle-bands"] or muz.main.globalArgs.shuffle_bands:
@@ -331,6 +334,9 @@ class Game(object):
         del self.removeNotes[:]
 
         for note in self.beatmap:
+            if note.isHint:
+                continue
+
             d = note.hitTime + note.holdTime - self.time
 
             if self.autoplay:

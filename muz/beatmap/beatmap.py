@@ -80,7 +80,7 @@ class Beatmap(collections.MutableSequence):
         od = maxdiff
 
         for n in self:
-            if n.band == band:
+            if n.band == band and not n.isHint:
                 d = n.hitTime - time
 
                 if d >= maxdiff:
@@ -158,11 +158,12 @@ class Beatmap(collections.MutableSequence):
 
         prev = None
         for note in self:
-            if prev is not None:
-                d = note.hitTime - prev.hitTime
-                if not mindist or (d > 20 and d < mindist):
-                    mindist = d
-            prev = note
+            if not note.isHint:
+                if prev is not None:
+                    d = note.hitTime - prev.hitTime
+                    if not mindist or (d > 20 and d < mindist):
+                        mindist = d
+                prev = note
 
         return mindist
 

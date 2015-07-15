@@ -28,6 +28,7 @@ def randomize(bmap):
     for note in bmap:
         note.varBands = range(bmap.numbands)
 
+    invalidateHints(bmap)
     return bmap
 
 def applyNondeterminism(bmap):
@@ -37,6 +38,9 @@ def applyNondeterminism(bmap):
     busy = [0 for band in xrange(bmap.numbands)]
 
     for notenum, note in enumerate(bmap):
+        if note.hitTime < 0:
+            continue
+
         note.resolveRef(bmap)
 
         if note.varBands is not None:
@@ -56,20 +60,22 @@ def applyNondeterminism(bmap):
         i = 1
         oband = note.band
         while note.hitTime - busy[note.band] < 0:
-            if i > bmap.numbands:
+            if i > bmap.numbands * 2:
                 raise RuntimeError("No free bands, beatmap sucks")
 
             if i == 1:
                 log.warning("Note %i (%r) placed on a busy band, relocating", notenum, note)
 
-            note.band = (oband + i * (-1 + 2 * i % 2)) % bmap.numbands
+            note.band = (oband + i * (-1 + 2 * (i % 2))) % bmap.numbands
             i += 1
 
-        busy[note.band] = note.hitTime + note.holdTime + mindist
+        busy[note.band] = max(busy[note.band], note.hitTime + note.holdTime + mindist)
 
     return bmap
 
 def chainRefs(bmap, cOfs=0, vOfs=None):
+    invalidateHints(bmap)
+
     prev = -1
     for i, note in enumerate(bmap):
         note.ref = prev
@@ -86,10 +92,23 @@ def applyRefs(bmap):
     return bmap
 
 def stairify(bmap):
-    return chainRefs(bmap, 0, [1])
+    return chainRefs(bmap, 2, [1])
 
 def stairifyRandomly(bmap):
     return chainRefs(bmap, 0, [1, -1])
+
+def invalidateHints(bmap):
+    for note in bmap:
+        if note.isHint:
+            note.hitTime = -1
+            note.holdTime = 0
+    return bmap
+
+def stripHints(bmap):
+    for note in tuple(bmap):
+        if note.isHint:
+            bmap.remove(note)
+    return bmap
 
 def insanify(bmap):
     bmap.fix()
@@ -99,6 +118,9 @@ def insanify(bmap):
 
     prev = None
     for note in tuple(bmap):
+        if note.isHint:
+            continue
+
         for i in range(1):
             if prev is not None and note.hitTime - (prev.hitTime + prev.holdTime * i) >= mindist * 2:
                 h = prev.hitTime + prev.holdTime * i + (note.hitTime - (prev.hitTime + prev.holdTime * i)) / 2

@@ -120,6 +120,16 @@ class Builder(object):
         self.rawpause(delayfract)
         return self.wrapped
 
+    def hint(self, holdfract=0.0):
+        holdfract = self.getDelay(holdfract)
+
+        for band in self.bands:
+            n = Note(band, self.pos, holdfract, isHint=True)
+            self.curNotes.add(n)
+            self.beatmap.append(n)
+
+        return self.wrapped
+
     def getDelay(self, delayfract):
         try:
             return sum(self.getDelay(d) for d in delayfract)

@@ -11,7 +11,7 @@ class ReferenceError(NoteError):
     pass
 
 class Note(object):
-    def __init__(self, band, hitTime, holdTime, varBands=None, ref=-1, refOfs=0, refVarOfs=None):
+    def __init__(self, band, hitTime, holdTime, varBands=None, ref=-1, refOfs=0, refVarOfs=None, isHint=False):
         try:
             self.hitTime = int(hitTime)
             assert self.hitTime >= 0
@@ -40,6 +40,8 @@ class Note(object):
 
         self.num = 0
         self.refObj = None
+
+        self.isHint = isHint
 
     def resolveRef(self, bmap):
         if self.ref < 0:
@@ -75,5 +77,6 @@ class Note(object):
             varBands    =   dup(self.varBands),
             ref         =   self.ref,
             refOfs      =   self.refOfs,
-            refVarOfs   =   dup(self.refVarOfs)
+            refVarOfs   =   dup(self.refVarOfs),
+            isHint      =   self.isHint
         )

@@ -24,6 +24,7 @@ def makeDefaultConfig():
         "hold-width"        : 1.0,
         "preserved-width"   : 0.0,
         "acceleration"      : False,
+        "show-hintnotes"    : False,
 
         "fonts": {
             "big"           : ["xolonium", 32, False],
@@ -301,7 +302,7 @@ class GameRenderer(object):
             hitdiff  = note.hitTime - game.time + self.targetoffs / noterate
             holddiff = hitdiff + note.holdTime
 
-            if holddiff < 0:
+            if holddiff < 0 or (note.isHint and not config["show-hintnotes"]):
                 continue
 
             if hitdiff * noterate > bounds.height + 5:
@@ -320,7 +321,10 @@ class GameRenderer(object):
 
             grad = None
 
-            if band.heldNote == note:
+            if note.isHint:
+                clr1 = (128, 128, 128)
+                clr2 = (128, 128, 128)
+            elif band.heldNote == note:
                 if self.holdGradients:
                     grad = self.highlightGradient
                 clr1 = colors["highlight"]
@@ -340,7 +344,7 @@ class GameRenderer(object):
                 x = bounds.height - holddiff * noterate
                 beam = pygame.Rect(bandoffs + bandWidth * 0.5 - self.holdWidth * 0.5, x, self.holdWidth, o - x + 5)
 
-                pygame.draw.rect(screen, clr2, beam, 1 if self.holdGradients else 0)
+                pygame.draw.rect(screen, clr2, beam, 1 if grad else 0)
 
                 if grad is not None:
                     h = int(beam.height)
@@ -354,7 +358,7 @@ class GameRenderer(object):
 
             pygame.draw.rect(screen, clr1, (bandoffs, o, bandWidth, 5), 0)
 
-            if self.noteGradients:
+            if self.noteGradients and not note.isHint:
                 sz = int(bounds.height - self.targetoffs - o)
                 if sz > 0:
                     s = self.gradients[note.band][int(clamp(0, (2 - vband.drawngradients * 0.5) * (o / maxNoteDist), 1) * 50.0)]
