@@ -18,6 +18,7 @@ def makeDefaultConfig():
         "band-width"        : 0.8,
         "hold-width"        : 1.0,
         "preserved-width"   : 0.0,
+        "acceleration"      : False,
 
         "fonts": {
             "big"           : ["xolonium", 32, False],
@@ -308,6 +309,10 @@ class GameRenderer(object):
             vband = self.bands[note.band]
             bandoffs = vband.offset
             o = bounds.height - hitdiff * noterate
+
+            if config["acceleration"]:
+                o = ((1.25 * o / bounds.height) ** 2) * bounds.height
+
             grad = None
 
             if band.heldNote == note:
