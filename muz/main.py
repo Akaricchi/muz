@@ -120,16 +120,19 @@ def handleGeneralArgs(parser, argv, namespace):
     if n.listbeatmaps:
         init()
         def getname(s):
+            if n.listbeatmaps < 2:
+                return s
+
             try:
                 b = muz.beatmap.load(s, bare=True)
             except Exception as e:
                 log.exception("failed to load beatmap %s: %s", s, e)
-                return ""
+                return s
             else:
-                return b.name
+                return "%s: %s" %(s, b.name)
 
         for s in sorted(filter(None, (muz.beatmap.nameFromPath(path+obj) for path, obj, _ in vfs.root.walk()))):
-            print(s + ": %s" % (getname(s) if n.listbeatmaps > 1 else ""))
+            print(getname(s))
 
         exit(0)
 
