@@ -320,7 +320,7 @@ class GameRenderer(object):
 
             grad = None
 
-            if band.heldNote == note:
+            if band.heldNote is note:
                 if self.holdGradients:
                     grad = self.highlightGradient
                 clr1 = colors["highlight"]
