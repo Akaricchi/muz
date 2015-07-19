@@ -330,7 +330,7 @@ class GameRenderer(object):
                 else:
                     clr1 = (128, 128, 128)
                 clr2 = clr1
-            elif band.heldNote == note:
+            elif band.heldNote is note:
                 if self.holdGradients:
                     grad = self.highlightGradient
                 clr1 = colors["highlight"]
