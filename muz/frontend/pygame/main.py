@@ -36,7 +36,7 @@ class Clock(muz.frontend.Clock):
         return self._clock.get_fps()
 
 class Frontend(muz.frontend.Frontend):
-    def __init__(self):
+    def __init__(self, args, namespace):
         self._music = Music()
         self.config = self.makeDefaultConfig()
         self.videoFlags = pygame.DOUBLEBUF | pygame.HWSURFACE
