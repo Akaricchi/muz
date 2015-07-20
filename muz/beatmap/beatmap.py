@@ -124,32 +124,30 @@ class Beatmap(collections.MutableSequence):
         m = self.meta
         lookForArtist = False
 
-        # TODO: prefer the UTF-8 variants when we can render the correctly
-
-        if m["Music.Name.ASCII"]:
-            if self.name:
-                self.name = "%s (%s)" % (m["Music.Name.ASCII"], self.name)
-            else:
-                self.name = m["Music.Name.ASCII"]
-            lookForArtist = True
-        elif m["Music.Name"]:
+        if m["Music.Name"]:
             if self.name:
                 self.name = "%s (%s)" % (m["Music.Name"], self.name)
             else:
                 self.name = m["Music.Name"]
             lookForArtist = True
+        elif m["Music.Name.ASCII"]:
+            if self.name:
+                self.name = "%s (%s)" % (m["Music.Name.ASCII"], self.name)
+            else:
+                self.name = m["Music.Name.ASCII"]
+            lookForArtist = True
 
         if lookForArtist:
-            if m["Music.Artist.ASCII"]:
-                self.name = "%s - %s" % (m["Music.Artist.ASCII"], self.name)
-            elif m["Music.Artist"]:
+            if m["Music.Artist"]:
                 self.name = "%s - %s" % (m["Music.Artist"], self.name)
+            elif m["Music.Artist.ASCII"]:
+                self.name = "%s - %s" % (m["Music.Artist.ASCII"], self.name)
 
         if self.name:
-            if m["Beatmap.Variant.ASCII"]:
-                self.name = "[%s] %s" % (m["Beatmap.Variant.ASCII"], self.name)
-            elif m["Beatmap.Variant"]:
+            if m["Beatmap.Variant"]:
                 self.name = "[%s] %s" % (m["Beatmap.Variant"], self.name)
+            elif m["Beatmap.Variant.ASCII"]:
+                self.name = "[%s] %s" % (m["Beatmap.Variant.ASCII"], self.name)
 
     @property
     def minimalNoteDistance(self):
