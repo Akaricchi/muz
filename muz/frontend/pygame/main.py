@@ -373,8 +373,19 @@ class Frontend(muz.frontend.Frontend):
     def loadFont(self, name, size, isSysFont):
         if isSysFont:
             return pygame.font.SysFont(name, size)
-        else:
-            return pygame.font.Font(muz.assets.font(name).realPath, size)
+
+        path = None
+        for ext in ("otf", "ttf"):
+            fname = "fonts/%s.%s" % (name, ext)
+            try:
+                path = muz.vfs.locate(fname).realPath
+            except Exception:
+                log.debug("loading font %r failed", exc_info=True)
+            else:
+                break
+
+        assert path is not None, "font %r couldn't be found" % name
+        return pygame.font.Font(path, size)
 
     def renderTextDummy(self, text, font, color, direct=False):
         if not self.dummySurf:
