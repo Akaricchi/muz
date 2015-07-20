@@ -52,7 +52,7 @@ class Clock(muz.frontend.Clock):
         return self._fps
 
 class Frontend(muz.frontend.Frontend):
-    def __init__(self):
+    def __init__(self, args, namespace):
         self.config = self.makeDefaultConfig()
         self._music = Music()
 
