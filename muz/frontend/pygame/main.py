@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import os
 import collections
 import logging
+import string
 import pygame
 
 import muz
@@ -36,6 +37,9 @@ class Clock(muz.frontend.Clock):
         return self._clock.get_fps()
 
 class Frontend(muz.frontend.Frontend):
+    supportedGlyphs = "".join((string.ascii_letters, string.digits, string.punctuation, string.whitespace))
+    fallbackFont = "unifont-8.0.01"
+
     def __init__(self, args, namespace):
         self._music = Music()
         self.config = self.makeDefaultConfig()
@@ -45,6 +49,9 @@ class Frontend(muz.frontend.Frontend):
         self.gameRendererClass = gamerenderer.GameRenderer
         self.console = None
         self.consoleScope = {}
+        self.fonts = {}
+        self.fallbackFontsBySize = {}
+        self.fallbackFonts = {}
 
     @property
     def supportedMusicFormats(self):
@@ -370,24 +377,90 @@ class Frontend(muz.frontend.Frontend):
 
     title = property(getTitle, setTitle)
 
-    def loadFont(self, name, size, isSysFont):
+    def _loadFont(self, name, size, isSysFont=False):
         if isSysFont:
             return pygame.font.SysFont(name, size)
-        else:
-            return pygame.font.Font(muz.assets.font(name).realPath, size)
 
-    def renderTextDummy(self, text, font, color, direct=False):
+        path = None
+        for ext in ("otf", "ttf"):
+            fname = "fonts/%s.%s" % (name, ext)
+            try:
+                path = muz.vfs.locate(fname).realPath
+            except Exception:
+                log.debug("loading font %r failed", exc_info=True)
+            else:
+                break
+
+        assert path is not None, "font %r couldn't be found" % name
+        return pygame.font.Font(path, size)
+
+    def loadFont(self, name, size, isSysFont=False):
+        if (name, size) in self.fonts:
+            return self.fonts[(name, size)]
+
+        fnt = self._loadFont(name, size, isSysFont)
+        self.fonts[(name, size)] = fnt
+
+        if name == self.fallbackFont:
+            self.fallbackFonts[fnt] = fnt
+            fnt.set_bold(True)
+            return fnt
+
+        if size not in self.fallbackFontsBySize:
+            self.fallbackFontsBySize[size] = self.loadFont(self.fallbackFont, size)
+
+        self.fallbackFonts[fnt] = self.fallbackFontsBySize[size]
+        return fnt
+
+    def renderTextDummy(self, text, font, color, direct=False, useFallback=False):
         if not self.dummySurf:
-            self.dummySurf = pygame.Surface((1, 1))
+            self.dummySurf = pygame.Surface((1, 1)).convert()
+            ckey = (0, 0, 0)
+            self.dummySurf.fill(ckey)
+            self.dummySurf.set_colorkey(ckey)
         return self.dummySurf
 
-    def renderText(self, text, font, color, direct=False):
-        txt = font.render(text, self.antialias, color)
+    def splitTextForRendering(self, text, font):
+        buf = ""
+        state = True
+
+        for c in text:
+            newstate = c in self.supportedGlyphs
+            if state != newstate:
+                if buf:
+                    yield font if state else self.fallbackFonts[font], buf
+                    buf = ""
+
+                state = newstate
+            buf += c
+
+        if buf:
+            yield font if state else self.fallbackFonts[font], buf
+
+    def renderText(self, text, font, color, direct=False, useFallback=False):
+        if useFallback:
+            surfs = tuple(
+                self.renderText(txt, fnt, color, useFallback=False)
+                    for fnt, txt in self.splitTextForRendering(text, font)
+            )
+
+            w = sum(s.get_rect().width  for s in surfs)
+            h = max(s.get_rect().height for s in surfs)
+
+            txt = pygame.Surface((w, h)).convert_alpha()
+            txt.fill((0, 0, 0, 0))
+
+            x = 0
+            for s in surfs:
+                txt.blit(s, (x, int((h - s.get_rect().height) * 0.5)))
+                x += s.get_rect().width
+        else:
+            txt = font.render(text, self.antialias, color)
 
         if direct:
             return txt
 
-        s = pygame.Surface(txt.get_size())
+        s = pygame.Surface(txt.get_size()).convert()
         ckey = (0, 0, 0)
         s.fill(ckey)
         s.blit(txt, (0, 0, 0, 0))

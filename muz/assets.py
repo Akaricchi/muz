@@ -22,9 +22,6 @@ def sound(name, root=None):
 
     return vfs.locate("sfx/%s", oname, root=root)
 
-def font(name, root=None):
-    return vfs.locate("fonts/%s.otf" % name, root=root)
-
 def music(name, root=None):
     oname = name
     name, ext = os.path.splitext(name)

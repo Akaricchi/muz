@@ -148,24 +148,31 @@ class Node(object):
         return ((k, self[k]) for k in self)
 
     def tempFile(self):
-        src = self.open()
-
         if self._temp is not None:
             tmp = self._temp
 
             if tmp.closed:
-                tmp = open(tmp.name, "w+b")
+                try:
+                    tmp = open(tmp.name, "w+b")
+                except (OSError, WindowsError):
+                    self._temp = None
+                    return self.tempFile()
                 self._temp = tmp
             else:
                 tmp.seek(0)
-        else:
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".%s" % self.name.split('.')[-1])
-            log.info("created temporary file %s", tmp.name)
-            tempfiles.append(tmp)
-            self._temp = tmp
 
+            return tmp
+
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".%s" % self.name.split('.')[-1])
+        log.info("created temporary file %s", tmp.name)
+        tempfiles.append(tmp)
+        self._temp = tmp
+
+        src = self.open()
         shutil.copyfileobj(src, tmp)
+        src.close()
         tmp.seek(0)
+
         return tmp
 
     def locateAlternative(self):
@@ -223,7 +230,8 @@ class Node(object):
 
     @property
     def realPath(self):
-        return self.tempFile().name
+        with self.tempFile() as f:
+            return f.name
 
 class LazyNode(object):
     def __init__(self, builder, parent=None):
@@ -578,7 +586,13 @@ class VirtualPack(BasePack):
 def cleanup():
     for tmp in tempfiles:
         log.info("removing temporary file %s", tmp.name)
-        os.remove(tmp.name)
+        try:
+            if not tmp.closed:
+                tmp.close()
+
+            os.remove(tmp.name)
+        except Exception:
+            log.exception("error removing temporary file %s", tmp.name)
 
     del tempfiles[:]
 

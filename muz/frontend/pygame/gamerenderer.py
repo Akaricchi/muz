@@ -173,7 +173,7 @@ class GameRenderer(object):
 
         self.pausedTextSurf = self.renderText("Paused", self.bigFont, txtcolors["pause"], direct=True)
 
-        self.nameSurf = self.renderText(game.beatmap.name, self.tinyFont, txtcolors["title"], direct=True)
+        self.nameSurf = self.renderText(game.beatmap.name, self.tinyFont, txtcolors["title"], direct=True, useFallback=True)
 
         awidth = bounds.width * (1.0 - config["preserved-width"])
         gapFactor = config["band-width"]
