@@ -113,8 +113,9 @@ def read(fobj, filename, bare=False, options=None):
         bmap.noterate = 1.0 / songinfo["notes_speed"]
 
     if "rank_info" in data:
-        for rank in data["rank_info"]:
-            bmap.meta["siftrain.rank_info.%i.rank_max" % rank["rank"]] = rank["rank_max"]
+        ranks = len(data["rank_info"])
+        for num, rank in enumerate(data["rank_info"]):
+            bmap.meta["siftrain.rank_info.%i.rank_max" % (ranks - num)] = rank["rank_max"]
 
     if "lead_in" in data:
         bmap.meta["siftrain.lead_in"] = data["lead_in"]
