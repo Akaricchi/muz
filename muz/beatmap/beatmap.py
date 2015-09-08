@@ -166,20 +166,43 @@ class Beatmap(collections.MutableSequence):
         return mindist
 
     def storeRefs(self):
+        dolink = False
+
         for i, note in enumerate(self):
             note.num = i
+            
             if note.ref < 0:
                 note.refObj = None
             else:
                 note.refObj = self[note.ref]
 
+            if note.link >= 0:
+                dolink = True
+
+        if dolink:
+            for note in self:
+                if note.link >= 0:
+                    note.linkObj = self[note.link]
+
+
     def updateRefs(self):
+        dolink = False
+
         for i, note in enumerate(self):
             note.num = i
+
             if note.refObj is None:
                 note.ref = -1
             else:
                 note.ref = note.refObj.num
+
+            if note.linkObj is not None:
+                dolink = True
+
+        if dolink:
+            for note in self:
+                if note.linkObj is not None:
+                    note.link = note.linkObj.num
 
     def sort(self):
         self.notelist.sort(key=lambda note: note.hitTime)

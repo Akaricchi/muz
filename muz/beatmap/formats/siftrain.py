@@ -81,11 +81,15 @@ def read(fobj, filename, bare=False, options=None):
             holdTime = 0
             band = 9 - int(note["position"])
             effect = int(note["effect"])
+            link = -1
+
+            if "link" in note:
+                link = note["link"]
 
             if effect & FLAG_HOLD:
                 holdTime = int(note["effect_value"] * 1000)
 
-            bmap.append(muz.beatmap.Note(band, hitTime, holdTime))
+            bmap.append(muz.beatmap.Note(band, hitTime, holdTime, link=link))
 
     if "song_name" in data:
         bmap.meta["Music.Name"] = data["song_name"]
@@ -152,6 +156,9 @@ def write(bmap, fobj, options=None):
             "effect_value"  : (note.holdTime / 1000.0) if note.holdTime else 2,
             "position"      : 9 - note.band
         }
+
+        if note.link >= 0:
+            n["link"] = note.link
 
         if p is not None and note.hitTime == pn.hitTime:
             p["effect"] |= FLAG_SIMULT_START
