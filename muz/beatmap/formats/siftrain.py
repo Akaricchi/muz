@@ -169,7 +169,7 @@ def write(bmap, fobj, options=None):
         notes.append(n)
 
     if meta["siftrain.song_info.notes_speed"]:
-        root["song_info"][0]["notes_speed"] = meta["siftrain.song_info.notes_speed"]
+        root["song_info"][0]["notes_speed"] = float(meta["siftrain.song_info.notes_speed"])
 
     if any(meta["siftrain.rank_info.%i.rank_max" % i] for i in xrange(5, 0, -1)):
         root["rank_info"] = [{
