@@ -194,22 +194,6 @@ class Builder(object):
 
         return self.wrapped
 
-    def link(self, src, dst):
-        for grp in (src, dst):
-            if grp not in self.groups:
-                raise RuntimeError("Group %r doesn't exist (call tag() first)" % grp)
-
-
-        lobj = self.groups[dst][0]
-
-        if lobj.num < 0:
-            self.beatmap.fix()
-
-        self.groups[src][0].linkObj = lobj
-        self.groups[src][0].link = lobj.num
-
-        return self.wrapped
-
     def pause(self, delayfract):
         self.rawpause(self.getDelay(delayfract))
         return self.wrapped
