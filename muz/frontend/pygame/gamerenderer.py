@@ -348,6 +348,10 @@ class GameRenderer(object):
 
             if note.holdTime:
                 x = bounds.height - holddiff * noterate
+
+                if x > 0 and config["acceleration"]:
+                    x = ((1.25 * x / bounds.height) ** 2) * bounds.height
+
                 beam = pygame.Rect(bandoffs + bandWidth * 0.5 - self.holdWidth * 0.5, x, self.holdWidth, o - x + 5)
 
                 pygame.draw.rect(screen, clr2, beam, 1 if grad else 0)
