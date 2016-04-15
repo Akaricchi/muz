@@ -194,3 +194,8 @@ def shuffleBands(bmap):
 def mirrorBands(bmap):
     orderBands(bmap, range(bmap.numbands)[::-1])
     return bmap
+
+def clampNotesToBands(bmap):
+    for note in bmap:
+        note.band %= bmap.numbands
+    return bmap

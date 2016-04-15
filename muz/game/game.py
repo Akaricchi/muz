@@ -50,15 +50,16 @@ class Band(object):
 
 class Game(object):
     def __init__(self, beatmap, frontend):
+        a = muz.main.globalArgs
+
         self.frontend = frontend
         self.beatmap = beatmap
         self.originalBeatmap = beatmap
         self.clock = None
         self.time = -1
         self.oldTime = self.time
-        self.bands = [Band(band) for band in xrange(self.beatmap.numbands)]
+        self.bands = [Band(band) for band in xrange(a.num_bands if a.num_bands > 0 else beatmap.numbands)]
         self.removeNotes = []
-
 
         self.defaultNoterate = config["noterate"]
         self.maxNoterate = config["max-noterate"]
@@ -81,8 +82,6 @@ class Game(object):
         for s in (self.hitSound, self.holdSound, self.releaseSound):
             self.soundplayed[s] = False
 
-        a = muz.main.globalArgs
-
         self.autoplay = a.autoplay or config["start-autoplay"]
         self.timeOffset = a.startfrom
         self.aggressiveUpdate = config["aggressive-update"]
@@ -101,13 +100,14 @@ class Game(object):
 
         frontend.title = beatmap.name
         self.initCommands()
-        frontend.initKeymap(submap="bandnum=%i" % beatmap.numbands)
+        frontend.initKeymap(submap="bandnum=%i" % len(self.bands))
 
         self._time = 0
         self.stats = Stats()
 
+        self.reloadBeatmap()
         if not config["start-paused"]:
-            self.start()
+            self.start(refreshBeatmap=False)
 
     @property
     def noterate(self):
@@ -174,6 +174,10 @@ class Game(object):
 
     def reloadBeatmap(self):
         self.beatmap = self.originalBeatmap.clone()
+
+        if len(self.bands) != self.beatmap.numbands:
+            self.beatmap.numbands = len(self.bands)
+            self.beatmap.clampNotesToBands()
 
         if muz.main.globalArgs.beatmap_offset is not None:
             offs = muz.main.globalArgs.beatmap_offset

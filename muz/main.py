@@ -184,6 +184,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
                    help='play automatically without user interaction (overrides the config setting)')
 
+    g.add_argument('-b', '--num-bands', action='store', type=int, default=0,
+                   help='forces a specific amount of bands instead of reading it from the beatmap')
+
     if beatmapOption and len(argv) < 1:
         parser.print_help()
         exit(1)
