@@ -1,9 +1,4 @@
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-
 import curses
 
 from muz.util import clamp
@@ -17,7 +12,7 @@ class Band(object):
 class GameRenderer(object):
     def __init__(self, game):
         self.game = game
-        self.bands = tuple(Band(i) for i in xrange(len(self.game.bands)))
+        self.bands = tuple(Band(i) for i in range(len(self.game.bands)))
         self.held = False
         self.time = 0
 
@@ -80,7 +75,7 @@ class GameRenderer(object):
                 bx = max(ofsy, x)
                 beam = (2, bx, bandwidth - 3, o - bx)
 
-                for lnum in xrange(beam[2]):
+                for lnum in range(beam[2]):
                     win.vline(beam[1], note.band * bandwidth + beam[0] + lnum, ord('.'), beam[3])
 
                 if x >= ofsy:
@@ -100,7 +95,7 @@ class GameRenderer(object):
             bc = curses.color_pair(band.color)
             win.attron(bc)
             if self.time - band.flash < 100:
-                for j in xrange(bandwidth - 1):
+                for j in range(bandwidth - 1):
                     if j % 2:
                         win.vline(targetoffsline + 1, 1 + j + i * bandwidth, ord('.'), height - targetoffsline + 1)
             win.attroff(bc)

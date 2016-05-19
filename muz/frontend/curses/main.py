@@ -1,9 +1,4 @@
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-
 import time
 import locale
 import curses
@@ -124,7 +119,7 @@ class Frontend(muz.frontend.Frontend):
         else:
             bg = curses.COLOR_BLACK
 
-        for c in xrange(8):
+        for c in range(8):
             curses.init_pair(c + 1, c, bg)
 
         curses.curs_set(0)
