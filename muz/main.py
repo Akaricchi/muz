@@ -178,6 +178,9 @@ def handleGameArgs(parser, argv, namespace, beatmapOption=True):
     g.add_argument('-a', '--autoplay', action='store_true', default=False,
                    help='play automatically without user interaction (overrides the config setting)')
 
+    g.add_argument('-b', '--num-bands', action='store', type=int, default=0,
+                   help='forces a specific amount of bands instead of reading it from the beatmap')
+
     if beatmapOption and len(argv) < 1:
         parser.print_help()
         exit(1)
@@ -228,14 +231,11 @@ def loadConfig(requireLogLevel=logging.CRITICAL):
 def playBeatmap(bmap):
     frontend.gameLoop(game.Game(bmap, frontend))
 
-def init(requireFrontend=False, requireLogLevel=logging.CRITICAL):
+def initFrontend(args, namespace):
     global frontend
+    frontend = muz.frontend.get(globalArgs.frontend, frontendArgs=args, frontendArgsNamespace=namespace)
 
-    if requireFrontend:
-        frontend = muz.frontend.get(globalArgs.frontend)
-    else:
-        frontend = None
-
+def init(requireLogLevel=logging.CRITICAL):
     initUserDir()
     loadConfig(requireLogLevel=requireLogLevel)
     initvfs()
@@ -252,8 +252,10 @@ def bareInit(argv=None, requireFrontend=False):
 
     n, argv = handleGeneralArgs(p, argv, n)
     n, argv = handleGameArgs(p, argv, n, beatmapOption=False)
+    if requireFrontend:
+        initFrontend(argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
-    init(requireFrontend=requireFrontend)
+    init()
 
 @muz.util.entrypoint
 def run(*argv):
@@ -263,12 +265,27 @@ def run(*argv):
 
     n, argv = handleGeneralArgs(p, argv, n)
     n, argv = handleGameArgs(p, argv, n)
+    initFrontend(argv, n)
     n, argv = handleRemainingArgs(p, argv, n)
-
-    init(requireFrontend=True)
+    init()
 
     try:
         playBeatmap(beatmap.load(n.beatmap[0], options=n.importer_options))
+    finally:
+        frontend.shutdown()
+
+@muz.util.entrypoint
+def runUI(*argv):
+    argv = argv[1:]
+    p = initArgParser()
+    n = None
+
+    n, argv = handleGeneralArgs(p, argv, n)
+    initFrontend(argv, n)
+    init()
+
+    try:
+        frontend.main()
     finally:
         frontend.shutdown()
 

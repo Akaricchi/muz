@@ -1,6 +1,5 @@
 
 import collections, os
-from io import StringIO
 from functools import partial
 
 import muz
@@ -32,7 +31,8 @@ class Beatmap(collections.MutableSequence):
             self.meta.update(meta)
 
     def clone(self):
-        bmap = Beatmap(self.name, self.numbands, source=self, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
+        notes = (note.clone() for note in self)
+        bmap = Beatmap(self.name, self.numbands, source=notes, meta=self.meta, vfsNode=self.vfsNode, musicFile=self._musicFile)
         bmap.noterate = self.noterate
         return bmap
 
@@ -75,7 +75,7 @@ class Beatmap(collections.MutableSequence):
         od = maxdiff
 
         for n in self:
-            if n.band == band:
+            if n.band == band and not n.isHint:
                 d = n.hitTime - time
 
                 if d >= maxdiff:
@@ -104,6 +104,7 @@ class Beatmap(collections.MutableSequence):
     def __setitem__(self, i, v):
         self.checknote(v)
         self.notelist[i] = v
+        v.num = i
 
     def insert(self, i, v):
         self.checknote(v)
@@ -119,32 +120,30 @@ class Beatmap(collections.MutableSequence):
         m = self.meta
         lookForArtist = False
 
-        # TODO: prefer the UTF-8 variants when we can render the correctly
-
-        if m["Music.Name.ASCII"]:
-            if self.name:
-                self.name = "%s (%s)" % (m["Music.Name.ASCII"], self.name)
-            else:
-                self.name = m["Music.Name.ASCII"]
-            lookForArtist = True
-        elif m["Music.Name"]:
+        if m["Music.Name"]:
             if self.name:
                 self.name = "%s (%s)" % (m["Music.Name"], self.name)
             else:
                 self.name = m["Music.Name"]
             lookForArtist = True
+        elif m["Music.Name.ASCII"]:
+            if self.name:
+                self.name = "%s (%s)" % (m["Music.Name.ASCII"], self.name)
+            else:
+                self.name = m["Music.Name.ASCII"]
+            lookForArtist = True
 
         if lookForArtist:
-            if m["Music.Artist.ASCII"]:
-                self.name = "%s - %s" % (m["Music.Artist.ASCII"], self.name)
-            elif m["Music.Artist"]:
+            if m["Music.Artist"]:
                 self.name = "%s - %s" % (m["Music.Artist"], self.name)
+            elif m["Music.Artist.ASCII"]:
+                self.name = "%s - %s" % (m["Music.Artist.ASCII"], self.name)
 
         if self.name:
-            if m["Beatmap.Variant.ASCII"]:
-                self.name = "[%s] %s" % (m["Beatmap.Variant.ASCII"], self.name)
-            elif m["Beatmap.Variant"]:
+            if m["Beatmap.Variant"]:
                 self.name = "[%s] %s" % (m["Beatmap.Variant"], self.name)
+            elif m["Beatmap.Variant.ASCII"]:
+                self.name = "[%s] %s" % (m["Beatmap.Variant.ASCII"], self.name)
 
     @property
     def minimalNoteDistance(self):
@@ -152,17 +151,38 @@ class Beatmap(collections.MutableSequence):
 
         prev = None
         for note in self:
-            if prev is not None:
-                d = note.hitTime - prev.hitTime
-                if not mindist or (d > 20 and d < mindist):
-                    mindist = d
-            prev = note
+            if not note.isHint:
+                if prev is not None:
+                    d = note.hitTime - prev.hitTime
+                    if not mindist or (d > 20 and d < mindist):
+                        mindist = d
+                prev = note
 
         return mindist
 
-    def fix(self):
+    def storeRefs(self):
+        for i, note in enumerate(self):
+            note.num = i
+            if note.ref < 0:
+                note.refObj = None
+            else:
+                note.refObj = self[note.ref]
+
+    def updateRefs(self):
+        for i, note in enumerate(self):
+            note.num = i
+            if note.refObj is None:
+                note.ref = -1
+            else:
+                note.ref = note.refObj.num
+
+    def sort(self):
         self.notelist.sort(key=lambda note: note.hitTime)
-        #self.applyMeta()
+
+    def fix(self):
+        self.storeRefs()
+        self.sort()
+        self.updateRefs()
 
     def __getattr__(self, attr):
         return partial(getattr(transform, attr), self)

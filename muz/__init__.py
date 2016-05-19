@@ -23,4 +23,4 @@ _config = muz.config.get(__name__, {
 from . import util, config, main, vfs, assets, console, beatmap
 configureLogger(log)
 
-from muz.main import initvfs, run, NAME, VERSION, init, bareInit
+from muz.main import initvfs, run, runUI, NAME, VERSION, init, bareInit

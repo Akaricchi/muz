@@ -81,3 +81,6 @@ class Frontend(object):
     def getTitle(self): pass
     def setTitle(self, v): pass
     title = abstractproperty(getTitle, setTitle)
+
+    def main(self):
+        raise NotImplementedError("the frontend doesn't have a main entrypoint")

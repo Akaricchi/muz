@@ -4,8 +4,8 @@ import importlib, pkgutil
 from .misc import QuitRequest, Command
 from .abstract import Sound, Music, Clock, Frontend
 
-def get(name):
-    return importlib.import_module(__name__ + "." + name).Frontend()
+def get(name, frontendArgs=None, frontendArgsNamespace=None):
+    return importlib.import_module(__name__ + "." + name).Frontend(args=frontendArgs, namespace=frontendArgsNamespace)
 
 def iter():
     prefix = __name__ + "."

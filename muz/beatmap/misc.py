@@ -63,9 +63,10 @@ def main(mapfunc, defaultPos=0, defaultLoopLimit=0, defaultFormat='pack'):
         n.loop = defaultLoopLimit
 
     n, argv = handleExportArgs(p, argv, n, mapfunc)
+    muz.main.initFrontend(argv, n)
     n, argv = muz.main.handleRemainingArgs(p, argv, n)
 
-    muz.main.init(requireFrontend=True)
+    muz.main.init()
     bmap = mapfunc()[0]
     bmap.applyMeta()
 
